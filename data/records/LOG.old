@@ -1,13 +1,5 @@
-2017/12/10-00:59:19.255 1340 Recovering log #12
-2017/12/10-00:59:19.255 1340 Level-0 table #14: started
-2017/12/10-00:59:19.255 1340 Level-0 table #14: 251 bytes OK
-2017/12/10-00:59:19.255 1340 Delete type=0 #12
-2017/12/10-00:59:19.255 1340 Delete type=3 #10
-2017/12/10-00:59:19.255 d2c Compacting 4@0 + 0@1 files
-2017/12/10-00:59:19.271 d2c Generated table #16@0: 4 keys, 251 bytes
-2017/12/10-00:59:19.271 d2c Compacted 4@0 + 0@1 files => 251 bytes
-2017/12/10-00:59:19.271 d2c compacted to: files[ 0 1 0 0 0 0 0 ]
-2017/12/10-00:59:19.271 d2c Delete type=2 #5
-2017/12/10-00:59:19.271 d2c Delete type=2 #8
-2017/12/10-00:59:19.271 d2c Delete type=2 #11
-2017/12/10-00:59:19.271 d2c Delete type=2 #14
+2017/12/12-01:18:42.497 1504 Recovering log #35
+2017/12/12-01:18:42.498 1504 Level-0 table #37: started
+2017/12/12-01:18:42.501 1504 Level-0 table #37: 251 bytes OK
+2017/12/12-01:18:42.511 1504 Delete type=0 #35
+2017/12/12-01:18:42.512 1504 Delete type=3 #33

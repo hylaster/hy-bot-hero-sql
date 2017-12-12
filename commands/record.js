@@ -12,7 +12,8 @@ exports.run = (client, message, args) => {
     }
     let member = message.mentions.members.first().user;
     let member2 = message.author;
-
+    let today = new Date().getUTCDate().toString();
+    
     // ensure the two users are compatible
     if (member.id === message.author.id) {
         message.channel.send("Sorry, but I can't let you play with yourself.");
@@ -20,19 +21,12 @@ exports.run = (client, message, args) => {
     } else if (member.bot) {
         message.channel.send("No bot would waste six turns battling you.");
         return;
-    } else if (client.records.get(member.id + " " + member2.id) || false) {
+    } else if (today === (client.records.get(member.id + " " + member2.id) || false)) {
         message.channel.send("You may only challenge each member once per day.");
         return;
     }
     
     // determine match eligibility
-    let today = new Date().getUTCDate().toString();
-
-    let m1 = client.records.get(member.id + " " + member2.id) || null;
-    // if (m1 === today){
-    //     message.channel.send("Please wait until tomorrow to challenge this player.");
-    //     return;
-    // }
 
     // get the current ranking of both players
     let rating1 = Number(client.records.get(member.id)) || 1000;
