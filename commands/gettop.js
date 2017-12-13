@@ -15,5 +15,5 @@ exports.run = (client, message, args) => {
             runnerup = key;
         }
     }
-    message.channel.send(`${topdog}'s rating is ${rating} and ${runnerup}'s is ${secondrating}`);
+    message.channel.send(`${topdog}'s rating is ${maxrating} and ${runnerup}'s is ${secondrating}`);
 }
