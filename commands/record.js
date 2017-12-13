@@ -10,18 +10,18 @@ exports.run = (client, message, args) => {
         message.channel.send("First argument should be 'winvs' or 'lossvs'.");
         return;
     }
-    let member = message.mentions.members.first().user;
-    let member2 = message.author;
+    let opponent = message.mentions.members.first().user;
+    let author = message.author;
     let today = new Date().getUTCDate().toString();
     
     // ensure the two users are compatible
-    if (member.id === message.author.id) {
+    if (opponent.id === message.author.id) {
         message.channel.send("Sorry, but I can't let you play with yourself.");
         return;          
-    } else if (member.bot) {
+    } else if (opponent.bot) {
         message.channel.send("No bot would waste six turns battling you.");
         return;
-    } else if (today === (client.records.get(member.id + " " + member2.id) || false)) {
+    } else if (today === (client.records.get(opponent.id + " " + author.id) || false)) {
         message.channel.send("You may only challenge each member once per day.");
         return;
     }
@@ -29,8 +29,8 @@ exports.run = (client, message, args) => {
     // determine match eligibility
 
     // get the current ranking of both players
-    let rating1 = Number(client.records.get(member.id)) || 1000;
-    let rating2 = Number(client.records.get(member2.id)) || 1000;
+    let rating1 = Number(client.records.get(opponent.id)) || 1000;
+    let rating2 = Number(client.records.get(author.id)) || 1000;
     
     if (result === "winvs"){
         results = EloRating.calculate(rating1,rating2,false);
@@ -48,10 +48,10 @@ exports.run = (client, message, args) => {
         rating2 = rating2 - difference;
     }
 
-    client.records.set(member.id, rating1);
-    client.records.set(member2.id, rating2);
-    client.records.set(member.id + " " + member2.id, today);
-    client.records.set(member2.id + " " + member.id, today);
+    client.records.set(opponent.id, rating1);
+    client.records.set(author.id, rating2);
+    client.records.set(opponent.id + " " + author.id, today);
+    client.records.set(author.id + " " + opponent.id, today);
 
-    message.channel.send(`Recording ${message.author.username}'s ${result} ${member}`);
+    message.channel.send(`Recording ${message.author.username}'s ${result} ${opponent}`);
 }
