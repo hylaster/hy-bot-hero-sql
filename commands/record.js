@@ -34,12 +34,18 @@ exports.run = (client, message, args) => {
     
     if (result === "winvs"){
         results = EloRating.calculate(rating1,rating2,false);
-        rating1 = results.playerRating;
-        rating2 = results.opponentRating;
+        let difference = Math.abs(rating1 - results.playerRating);
+        console.log("difference is " + difference);
+        difference *= 2;
+        rating1 = rating1 - difference;
+        rating2 = rating2 + difference;
     } else {
         results = EloRating.calculate(rating1, rating2, true);
-        rating1 = results.playerRating;
-        rating2 = results.opponentRating;
+        let difference = Math.abs(rating1 - results.playerRating);
+        console.log("difference is " + difference);
+        difference *= 2;
+        rating1 = rating1 + difference;
+        rating2 = rating2 - difference;
     }
 
     client.records.set(member.id, rating1);
