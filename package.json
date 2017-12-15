@@ -16,12 +16,13 @@
     "enmap": "^0.4.2",
     "enmap-level": "^1.0.0",
     "express": "^4.16.2",
-    "git": "^0.1.5"
+    "git": "^0.1.5",
+    "mysql": "^2.15.0"
   },
   "devDependencies": {},
   "description": "",
   "engines": {
     "node": "8.9.3",
-    "npm": "5.5.1"
+    "npm": "5.6.0"
   }
 }
