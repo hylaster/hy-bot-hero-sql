@@ -1,24 +1,16 @@
-exports.run = (client, message, args) => {
-    let maxrating = 0;
-    let secondrating = 0;
-    let topdog = "";
-    let runnerup = "";
+exports.run = (client, message, args, pool) => {
     console.log("--");
-    for (var key of client.records.keyArray()){
-        console.log(key);
-        let rating = Number(client.records.get(key));
-        if (client.users.get(key)){
-            if (rating > maxrating){
-                secondrating = maxrating;
-                runnerup = topdog;
-                maxrating = rating;
-                topdog = client.users.get(key).username;
-            } else if (rating > secondrating){
-                secondrating = rating;
-                runnerup = client.users.get(key).username;
-            }    
-    
+
+    pool.query("SELECT userid, rating FROM UserByServer ORDER BY rating DESC WHERE server = " + message.guild.id + " LIMIT 2;", function(err, results){
+        if (err) console.log(err);
+        else {
+            if (!results[1]){
+                console.log("Two users do not exist.");
+            } else {
+                console.log("Successfully found top two players.");
+                message.channel.send(`Top rating is ${client.users.get(results[0].userid)} at ${results[0].rating}
+                2nd place is ${client.users.get(results[1].userid)} at ${results[1].rating}`);            
+            }
         }
-    }
-    message.channel.send(`${topdog}'s rating is ${maxrating} and ${runnerup}'s is ${secondrating}`);
+    });
 }
