@@ -58,7 +58,6 @@ exports.run = (client, message, args, pool) => {
         });
     }
 
-    let table = client.records;
     let result = args[0];
     result = result.toLowerCase();
 
