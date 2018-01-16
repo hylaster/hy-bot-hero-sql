@@ -2,16 +2,11 @@ const Discord = require("discord.js");
 const client = new Discord.Client();
 const config = require("./config.json");
 const fs = require("fs");
-const enmap = require("enmap");
-const enmapLevel = require("enmap-level");
 const express = require('express');
 const app = express();
 const mysql = require("mysql");
 
 const port = process.env.PORT || 5000;
-
-const tableSource = new enmapLevel({name: "Records"});
-client.records = new enmap({provider:tableSource});
 
 var pool  = mysql.createPool({
     connectionLimit : 10,
@@ -68,5 +63,5 @@ client.on("message", (message) => {
 client.login(config.token);
 
 setInterval(() => {
-    http.get('http://hy-bot-hero.herokuapp.com');
+    http.get('http://hy-bot-hero-sql.herokuapp.com');
   }, 900000);
