@@ -63,5 +63,5 @@ client.on("message", (message) => {
 client.login(config.token);
 
 setInterval(() => {
-    http.get('http://hy-bot-hero-sql.herokuapp.com');
+    http.get('https://hy-bot-hero-sql.herokuapp.com');
   }, 900000);
