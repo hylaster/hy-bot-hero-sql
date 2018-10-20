@@ -1,6 +1,8 @@
-exports.run = (client, message, args, pool) => {
-    console.log("--");
+import Command from "./command";
 
+const comm: Command = (client, message, args, pool) => {
+    console.log("--");
+    
     pool.query("SELECT userid, rating FROM UserByServer WHERE server = " + message.guild.id + " ORDER BY rating DESC LIMIT 2;", function(err, results){
         if (err) console.log(err);
         else {
@@ -15,3 +17,5 @@ exports.run = (client, message, args, pool) => {
         }
     });
 }
+
+export default comm;
