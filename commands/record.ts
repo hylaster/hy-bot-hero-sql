@@ -11,38 +11,38 @@ const enum Outcome {
 
 const comm: Command = (client, message, args, pool) => {
     function isEligible(user1: Discord.User, user2: Discord.User, date: Date): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => 
+        return new Promise<boolean>((resolve, reject) =>
             pool.query("SELECT * FROM MatchByServer WHERE user1 = ? AND user2 = ? AND matchdate = ? AND server = ?",
-            [user1.id, user2.id, getSqlDateString(date), message.guild.id], function (err, results) {
-            if (err) reject(err);
-            
-                console.log(results);
-                console.log(message.guild.id);
-                resolve(!results[0]);
-        }));
+                [user1.id, user2.id, getSqlDateString(date), message.guild.id], function (err, results) {
+                    if (err) reject(err);
+
+                    console.log(results);
+                    console.log(message.guild.id);
+                    resolve(!results[0]);
+                }));
     }
 
     async function getRating(user: Discord.User, server: string): Promise<number> {
-        return new Promise<number>((resolve, reject) => 
+        return new Promise<number>((resolve, reject) =>
             pool.query("SELECT rating FROM UserByServer WHERE userid = ? AND server = ?", [user.id, server], function (err, results) {
-            if (err) {
-                reject(err);
-            }
-            else if (!results[0]) {
-                pool.query("INSERT INTO UserByServer VALUES (?, ?, 1000)", [user.id, server], function (err) {
-                    if (err) {
-                        reject(err);
-                    }
-                    else {
-                        console.log("Added user " + user.id);
-                        message.channel.send(`${user}'s rating initialised to 1000`);
-                        resolve(1000);
-                    }
-                });
-            } else {
-                resolve(results[0].rating);
-            }
-        }));;
+                if (err) {
+                    reject(err);
+                }
+                else if (!results[0]) {
+                    pool.query("INSERT INTO UserByServer VALUES (?, ?, 1000)", [user.id, server], function (err) {
+                        if (err) {
+                            reject(err);
+                        }
+                        else {
+                            console.log("Added user " + user.id);
+                            message.channel.send(`${user}'s rating initialised to 1000`);
+                            resolve(1000);
+                        }
+                    });
+                } else {
+                    resolve(results[0].rating);
+                }
+            }));;
     }
 
     async function updateRating(user: Discord.User, rating: number, server: string) {
@@ -102,13 +102,13 @@ const comm: Command = (client, message, args, pool) => {
                         console.log("Ratings obtained.");
 
                         let newAuthorRating: number, newOpponentRating: number;
-                        ({newAuthorRating, newOpponentRating} = getRatingsAfterGame(result, authorRating, opponentRating));
+                        ({ newAuthorRating, newOpponentRating } = getRatingsAfterGame(result, authorRating, opponentRating));
 
                         addMatch(author, opponent, today, result, message.guild.id).then(_ => {
-                                console.log("match added");
+                            console.log("match added");
                             Promise.all([updateRating(author, newAuthorRating, message.guild.id), updateRating(opponent, newOpponentRating, message.guild.id)])
                                 .then(_ => message.channel.send(`Recording ${message.author.username}'s ${result} ${opponent}`));
-                            }
+                        }
                         );
 
                     });
@@ -119,16 +119,16 @@ const comm: Command = (client, message, args, pool) => {
 }
 
 function getRatingsAfterGame(result: Outcome, authorRating: number, opponentRating: number) {
-    
+
     const eloResults = EloRating.calculate(authorRating, opponentRating, result === Outcome.Win);
     let difference = Math.abs(authorRating - eloResults.playerRating);
     console.log("difference is " + difference);
     difference *= 2;
 
-    const newAuthorRating = authorRating + (result === Outcome.Win ? difference: -difference);
+    const newAuthorRating = authorRating + (result === Outcome.Win ? difference : -difference);
     const newOpponentRating = authorRating + (result === Outcome.Loss ? difference : -difference);
 
-    return {newAuthorRating, newOpponentRating};
+    return { newAuthorRating, newOpponentRating };
 }
 
 export default comm;
