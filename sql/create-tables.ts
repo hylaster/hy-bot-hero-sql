@@ -1,3 +1,6 @@
+import MySqlPoolLocator from "./mysql-pool-locator";
+
+const pool = MySqlPoolLocator.getPool();
 
 pool.query("CREATE TABLE `User` (`userid` INT NOT NULL, `rating` INT NOT NULL, PRIMARY KEY (`userid`));"
     , function(err, rows, fields) {
