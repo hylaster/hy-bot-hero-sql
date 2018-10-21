@@ -1,4 +1,4 @@
-import { DataService, UserRatingPair } from './dataservice';
+import { DataService, UserRatingPair, TopTwo } from './dataservice';
 import { Pool, MysqlError } from 'mysql';
 import { Snowflake } from 'discord.js';
 
@@ -6,11 +6,6 @@ const getSqlDateString = (date: Date) =>
   `'${date.getUTCFullYear()}-${date.getUTCMonth()}-${date.getUTCDate()}'`;
 
 const sqlOutcomeRepresentation = new Map<boolean, string>([[true, 'winvs'], [false, 'lossvs']]);
-
-export const enum Outcome {
-  Win = 'winvs',
-  Loss = 'lossvs'
-}
 
 export class MySqlDataService implements DataService {
 
@@ -35,8 +30,6 @@ export class MySqlDataService implements DataService {
         if (err) {
           reject(err);
         } else {
-          console.log('Added user ' + userId);
-          message.channel.send(`${user}'s rating initialised to 1000`);
           resolve();
         }
       }));
@@ -47,41 +40,26 @@ export class MySqlDataService implements DataService {
       this.pool.query('SELECT rating FROM UserByServer WHERE userid = ? AND server = ?', [userId, server], (err, results) => {
         if (err) {
           reject(err);
-        } else if (!results[0]) {
-          this.pool.query('INSERT INTO UserByServer VALUES (?, ?, 1000)', [userId, server], function (err) {
-            if (err) {
-              reject(err);
-            } else {
-              console.log('Added user ' + userId);
-              message.channel.send(`${user}'s rating initialised to 1000`);
-              resolve(1000);
-            }
-          });
         } else {
           resolve(results[0].rating);
         }
       }));
   }
 
-  getTopTwoPlayers(server: Snowflake): Promise<{ RankOne: UserRatingPair, RankTwo: UserRatingPair }> {
+  getTopTwoPlayers(server: Snowflake): Promise<TopTwo> {
     const query = 'SELECT userid, rating FROM UserByServer WHERE server = ? ORDER BY rating DESC LIMIT 2;';
     const params = [server];
 
     return new Promise<{ RankOne: UserRatingPair, RankTwo: UserRatingPair }>((resolve, reject) =>
       this.pool.query(query, params, (err: MysqlError | null, results: any[]) => {
         if (err) {
-          console.log(err);
+          reject(err);
         } else {
-          if (!results[1]) {
-            message.channel.send(`Two users do not exist.`);
-            console.log('Two users do not exist.');
-          } else {
-            console.log('Successfully found top two players.');
-            message.channel.send(`Top rating is ${client.users.get(results[0].userid)} at ${results[0].rating}
-                2nd place is ${client.users.get(results[1].userid)} at ${results[1].rating}`);
-          }
+          resolve({
+            RankOne: { userId: results[0].userid, rating: results[0].rating },
+            RankTwo: { userId: results[1].userid, rating: results[1].rating }});
         }
-      });
+      }));
   }
 
   areUsersEligibleForMatch(user1: Snowflake, user2: Snowflake, server: Snowflake, date: Date): Promise<boolean> {
