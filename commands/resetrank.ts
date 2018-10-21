@@ -13,8 +13,18 @@ const comm: Command = (client, message, args, dataService: DataService) => {
   if (!member) {
     message.channel.send('Please tag a user.');
   } else {
-    dataService.updateRating(member.id, 1000, message.guild.id).then((newRanking: number) => {
-      message.channel.send(`Ranking reset to ${newRanking}`);
+    const userId = member.id;
+    const server = message.guild.id;
+
+    dataService.isUserRated(userId, server)
+    .then((userIsRated) => {
+      if (userIsRated) {
+        dataService.updateRating(userId, 1000, server).then((newRanking: number) => {
+          message.channel.send(`Ranking reset to ${newRanking}`);
+        });
+      } else {
+        message.channel.send('User is not rated.');
+      }
     });
   }
 };
