@@ -1,6 +1,6 @@
 import Discord from "discord.js";
-import mysql from "mysql";
+import {DataService} from "../data/dataservice";
 
 export interface Command {
-    (client: Discord.Client, message: Discord.Message, args: string[], pool: mysql.Pool): void;
+    (client: Discord.Client, message: Discord.Message, args: string[], dataService: DataService): void;
 }

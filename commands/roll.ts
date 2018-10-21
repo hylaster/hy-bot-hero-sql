@@ -1,6 +1,8 @@
 import { Command } from './command';
+import { Client, Message } from 'discord.js';
+import { DataService } from '../data/dataservice';
 
-const comm: Command = (client, message, args, pool) => {
+const comm: Command = (client: Client, message: Message, args: string[], dataService: DataService) => {
   const dice = args.join('').trim();
   const numDice = parseInt(dice.split('d')[0]);
 

@@ -1,24 +1,17 @@
-import { MysqlError } from 'mysql';
 import { Command } from './command';
+import { Client, Message } from 'discord.js';
+import { DataService, TopTwo } from '../data/dataservice';
 
-const comm: Command = (client, message, args, pool) => {
-  console.log('--');
+const comm: Command = (client: Client, message: Message, args: string[], dataService: DataService) => {
+  dataService.getTopTwoPlayers(message.guild.id).then((topTwo: TopTwo) => {
+    const rankOne = topTwo.RankOne;
+    const rankTwo = topTwo.RankTwo;
 
-  const query = 'SELECT userid, rating FROM UserByServer WHERE server = ? ORDER BY rating DESC LIMIT 2;';
-  const params = [message.guild.id];
-
-  pool.query(query, params, (err: MysqlError | null, results: any[]) => {
-    if (err) {
-      console.log(err);
+    if (rankOne && rankTwo) {
+      message.channel.send(`Top rating is ${client.users.get(rankOne.userId)} at ${rankOne.rating}
+                2nd place is ${client.users.get(rankTwo.userId)} at ${rankTwo.rating}`);
     } else {
-      if (!results[1]) {
-        message.channel.send(`Two users do not exist.`);
-        console.log('Two users do not exist.');
-      } else {
-        console.log('Successfully found top two players.');
-        message.channel.send(`Top rating is ${client.users.get(results[0].userid)} at ${results[0].rating}
-                2nd place is ${client.users.get(results[1].userid)} at ${results[1].rating}`);
-      }
+      message.channel.send('There are less than two users.');
     }
   });
 };

@@ -1,25 +1,13 @@
 import { Command } from './command';
+import { Client, Message } from 'discord.js';
+import { DataService } from '../data/dataservice';
+import { getOrInitRanking } from './shared/getOrInitRanking';
 
-const comm: Command = (client, message, args, pool) => {
-  const member = message.mentions.members.first().user;
-  if (!member) return;
+const comm: Command = (client: Client, message: Message, args: string[], dataService: DataService) => {
+  const user = message.mentions.members.first().user;
+  const serverId = message.guild.id;
 
-  pool.query('SELECT userid, rating FROM UserByServer WHERE userid = ? AND server = ?', [member.id, message.guild.id], function (err, results) {
-    console.log(results.length);
-
-    if (!results[0]) {
-      pool.query('INSERT INTO UserByServer VALUES (?, ?, 1000);', [member.id, message.guild.id], function (err2) {
-        if (err2) {
-          console.log(err2);
-        } else {
-          console.log('Added user ' + member.id);
-          message.channel.send(`${member}'s rating initalised to 1000`);
-        }
-      });
-    } else {
-      message.channel.send(`${member}'s rating is ${results[0].rating}`);
-    }
-  });
+  getOrInitRanking(user, message, serverId, 1000, dataService);
 };
 
 export default comm;
