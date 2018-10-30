@@ -1,7 +1,7 @@
 import Discord, { User } from 'discord.js';
-import { Command } from './command';
-import { DataService } from '../data/dataservice';
-import { getOrInitRanking } from './shared/getOrInitRanking';
+import { Command } from '../command';
+import { DataService } from '../../data/dataservice';
+import { getOrInitRanking } from '../shared/getOrInitRanking';
 const EloRating = require('elo-rating');
 
 const enum Outcome {
@@ -9,7 +9,7 @@ const enum Outcome {
   Loss = 'lossvs'
 }
 
-const comm: Command = (client: Discord.Client, message: Discord.Message,
+export const Record: Command = (client: Discord.Client, message: Discord.Message,
   args: string[], dataService: DataService) => {
 
   const result = args[0].toLowerCase();
@@ -77,5 +77,3 @@ function getRatingsAfterGame(result: Outcome, authorRating: number, opponentRati
 
   return { newAuthorRating, newOpponentRating };
 }
-
-export default comm;

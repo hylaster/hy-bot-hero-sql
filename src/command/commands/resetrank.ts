@@ -1,9 +1,9 @@
-import { Command } from './command';
-import { DataService } from '../data/dataservice';
+import { Command } from '../command';
+import { DataService } from '../../data/dataservice';
 
 const config = require('../config.json');
 
-const comm: Command = (client, message, args, dataService: DataService) => {
+export const ResetRank: Command = (client, message, args, dataService: DataService) => {
   if (message.author.id !== config.owner) {
     message.channel.send("Only the bot owner may reset a player's ranking.");
     return;
@@ -28,5 +28,3 @@ const comm: Command = (client, message, args, dataService: DataService) => {
     });
   }
 };
-
-export default comm;

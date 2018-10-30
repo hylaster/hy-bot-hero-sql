@@ -1,9 +1,8 @@
 import Discord from 'discord.js';
-const config = require('./config.json');
-import http from 'http';
-import MySqlPoolLocator from './sql/mysql-pool-locator';
+const config = require('../config.json');
+import MySqlPoolLocator from './data/sql/mysql-pool-locator';
 import { MySqlDataService } from './data/mysql-data-service';
-import { Command } from './commands/command';
+import { Command } from '../commands/command';
 
 const pool = MySqlPoolLocator.getPool();
 const dataService = new MySqlDataService(pool);
@@ -35,11 +34,13 @@ function handleMessage(message: Discord.Message) {
 
   if (commandName == null) return;
   if (commandName.charAt(0) === '.') {
-    message.channel.send('Potential attempt to access outside of commands. Ignoring command.');
+    message.channel.send('Invalid command.');
   } else {
     const command: Command = require(`./commands/${commandName}.js`);
     if (command != null) {
       command(client, message, args, dataService);
+    } else {
+      message.channel.send('Command not found.');
     }
   }
 }
