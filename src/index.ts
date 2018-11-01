@@ -1,8 +1,8 @@
 import Discord from 'discord.js';
 const config = require('../config.json');
-import MySqlPoolLocator from './data/sql/mysql-pool-locator';
+import { MySqlPoolLocator } from './data/sql/mysql-pool-locator';
 import { MySqlDataService } from './data/mysql-data-service';
-import { Command } from '../commands/command';
+import { Command } from './command/command';
 
 const pool = MySqlPoolLocator.getPool();
 const dataService = new MySqlDataService(pool);
