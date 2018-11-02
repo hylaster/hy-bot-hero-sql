@@ -1,4 +1,4 @@
-import { Command } from './command';
+import { Command } from '../command';
 
 export const Reload: Command = (client, message, args) => {
   if (!args || args.length < 1) {
