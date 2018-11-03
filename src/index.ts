@@ -1,5 +1,6 @@
 import Discord from 'discord.js';
 const config = require('../config.json');
+import http from 'http';
 import { MySqlPoolLocator } from './data/sql/mysql-pool-locator';
 import { MySqlDataService } from './data/mysql-data-service';
 import { Command } from './command/command';
