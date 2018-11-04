@@ -3,34 +3,37 @@ import { Client, Message } from 'discord.js';
 import { DataService } from '../../data/dataservice';
 
 export const Roll: Command = (_client: Client, message: Message, args: string[], _dataService: DataService) => {
-  const dice = args.join('').trim();
-  const numDice = parseInt(dice.split('d')[0]);
+  const sendInvalidArgsString = () => {
+    message.channel.send('Please enter a valid dice string. Examples include 3d6, 2d4+3, 6d4-6');
+  };
 
-  const diceAndModifier = dice.split('d')[1];
-
-  if (diceAndModifier == null) {
-    message.channel.send('Please enter a dice string.');
+  if (args.length < 1) {
+    sendInvalidArgsString();
+    return;
   }
 
-  let maxRoll = 0;
-  let modifier = 0;
-  if (diceAndModifier.indexOf('+') !== -1) {
-    maxRoll = parseInt(diceAndModifier.split('+')[0]);
-    modifier = parseInt(diceAndModifier.split('+')[1]);
-  } else if (diceAndModifier.indexOf('-') !== -1) {
-    maxRoll = parseInt(diceAndModifier.split('-')[0]);
-    modifier = parseInt(diceAndModifier.split('-')[1]) * -1;
-  } else {
-    maxRoll = parseInt(diceAndModifier);
+  const dieRegex: RegExp = /(\d+)d(\d+)([+-]\d+)?/;
+
+  const diceString = args.join('').trim(); // to allow for optional spaces in dice string
+
+  const matches = diceString.match(dieRegex);
+
+  if (matches == null) {
+    sendInvalidArgsString();
+    return;
   }
+
+  const numDice = parseInt(matches[1]);
+  const numFaces = parseInt(matches[2]);
+  const modifier = (matches[3] != null) ? parseInt(matches[3]) : 0;
 
   const results = [];
   let total = Number(modifier);
   for (let die = 0; die < numDice; die++) {
-    const n = Math.floor(Math.random() * maxRoll + 1);
+    const n = Math.floor(Math.random() * numFaces + 1);
     results.push(n);
     total += n;
   }
 
-  message.channel.send('Results: ' + results.join(' ') + ' | Total With Modifier: ' + total);
+  message.channel.send(`Results: ${results.join(' ')} | Total With Modifier: ${total}`);
 };
