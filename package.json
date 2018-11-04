@@ -4,7 +4,7 @@
   "main": "index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "ts-node src/index.ts",
+    "start": "ts-node src/main.ts",
     "create-tables": "ts-node src/sql/create-tables.ts"
   },
   "keywords": [],
@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "@types/dedent": "^0.7.0",
+    "@types/jest": "^23.3.9",
     "dedent": "^0.7.0",
     "discord.js": "^11.2.1",
     "ejs": "^2.5.7",
