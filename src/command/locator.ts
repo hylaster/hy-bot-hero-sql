@@ -13,11 +13,6 @@ const commandMap: Map<CommandName, Command> = new Map([
 ]);
 
 export namespace CommandLocator {
-  /**
-   * fuk
-   * @param name The name of the command, as it would be entered by a user.
-   */
-  export const getCommand = (name: string) => commandMap.get(name as CommandName);
-
-  export const commandWithNameExists = (name: string) => commandMap.has(name as CommandName);
+  export const getCommand = (name: string | CommandName) => commandMap.get(name as CommandName);
+  export const commandWithNameExists = (name: string | CommandName) => commandMap.has(name as CommandName);
 }
