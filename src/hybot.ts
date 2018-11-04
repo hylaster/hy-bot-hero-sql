@@ -2,6 +2,8 @@ import Discord from 'discord.js';
 import { DataService } from './data/dataservice';
 import { HyBotConfig } from './hybot-config';
 import { Command } from './command/command';
+import { CommandLocator } from './command/locator';
+import { CommandMessageParts, MessageParser } from './command/message-parser';
 
 export interface ConnectResponse {
   token: string;
@@ -45,25 +47,18 @@ export class HyBot {
       throw new Error('Attempted to process a message without a connected client.');
     }
 
-    if (!message.content.startsWith(this.config.prefix) || message.author.bot) return;
+    const messageParts: CommandMessageParts | undefined =
+      MessageParser.parseCommand(this.config.prefix, message);
 
-    const words: string[] = message.content.slice(this.config.prefix.length).trim().split(/ +/g);
+    if (messageParts == null) return;
 
-    if (words == null || words.length === 0) return;
+    const command: Command | undefined = CommandLocator.getCommand(messageParts.commandName);
 
-    const commandName = words[0] == null ? null : words[0].toLowerCase();
-    const args = words.splice(1);
-
-    if (commandName == null) return;
-    if (commandName.charAt(0) === '.') {
-      message.channel.send('Invalid command.');
+    if (command == null) {
+      message.channel.send(`There is no *${messageParts.commandName}* command.`);
     } else {
-      const command: Command = require(`./commands/${commandName}.js`);
-      if (command != null) {
-        command(this.client, message, args, this.dataService);
-      } else {
-        message.channel.send('Command not found.');
-      }
+      command(this.client, message, messageParts.args, this.dataService);
     }
   }
+
 }

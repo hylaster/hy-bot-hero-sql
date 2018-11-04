@@ -2,7 +2,7 @@ import { Command } from '../command';
 import { Client, Message } from 'discord.js';
 import { DataService } from '../../data/dataservice';
 
-export const Roll: Command = (client: Client, message: Message, args: string[], dataService: DataService) => {
+export const Roll: Command = (_client: Client, message: Message, args: string[], _dataService: DataService) => {
   const dice = args.join('').trim();
   const numDice = parseInt(dice.split('d')[0]);
 

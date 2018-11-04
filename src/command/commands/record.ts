@@ -1,4 +1,4 @@
-import Discord, { User } from 'discord.js';
+import Discord from 'discord.js';
 import { Command } from '../command';
 import { DataService } from '../../data/dataservice';
 import { getOrInitRanking } from '../shared/getOrInitRanking';
@@ -9,7 +9,7 @@ const enum Outcome {
   Loss = 'lossvs'
 }
 
-export const Record: Command = (client: Discord.Client, message: Discord.Message,
+export const Record: Command = (_client: Discord.Client, message: Discord.Message,
   args: string[], dataService: DataService) => {
 
   const result = args[0].toLowerCase();

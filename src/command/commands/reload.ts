@@ -1,6 +1,6 @@
 import { Command } from '../command';
 
-export const Reload: Command = (client, message, args) => {
+export const Reload: Command = (_client, message, args) => {
   if (!args || args.length < 1) {
     return message.reply('Must provide a command name to reload.');
   }
