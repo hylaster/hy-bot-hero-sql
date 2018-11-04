@@ -1,7 +1,12 @@
 import Discord from 'discord.js';
 import { DataService } from './data/dataservice';
-import { HyBotConfig } from './config';
+import { HyBotConfig } from './hybot-config';
 import { Command } from './command/command';
+
+export interface ConnectResponse {
+  token: string;
+  botUsername: string;
+}
 
 export class HyBot {
 
@@ -9,15 +14,19 @@ export class HyBot {
 
   public constructor(private config: HyBotConfig, private dataService: DataService) {}
 
-  public connect() {
+  public connect(): Promise<ConnectResponse> {
     const client = new Discord.Client(this.config.clientConfig);
-    client.on('ready', () => {
-      console.log('Ready.');
-    });
 
     client.on('message', this.processMessage);
+
     this.client = client;
-    this.client.login(this.config.token);
+
+    return new Promise<ConnectResponse>((resolve,reject) => {
+      client.login(this.config.token)
+        .then(token => {
+          resolve({ token, botUsername: client.user.username });
+        }).catch(err => reject(err));
+    });
   }
 
   public isConnected() {
