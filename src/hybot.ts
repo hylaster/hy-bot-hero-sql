@@ -47,6 +47,8 @@ export class HyBot {
       throw new Error('Attempted to process a message without a connected client.');
     }
 
+    if (!this.messageIsIntendedForBot(message)) return;
+
     const messageParts: CommandMessageParts | undefined =
       MessageParser.parseCommand(this.config.prefix, message);
 
@@ -59,6 +61,10 @@ export class HyBot {
     } else {
       command(this.client, message, messageParts.args, this.dataService);
     }
+  }
+
+  private messageIsIntendedForBot(message: Discord.Message) {
+    return message.content.startsWith(this.config.prefix);
   }
 
 }

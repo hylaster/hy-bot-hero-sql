@@ -6,7 +6,11 @@ export const Roll: Command = (_client: Client, message: Message, args: string[],
   const dice = args.join('').trim();
   const numDice = parseInt(dice.split('d')[0]);
 
-  let diceAndModifier = dice.split('d')[1];
+  const diceAndModifier = dice.split('d')[1];
+
+  if (diceAndModifier == null) {
+    message.channel.send('Please enter a dice string.');
+  }
 
   let maxRoll = 0;
   let modifier = 0;
@@ -20,7 +24,7 @@ export const Roll: Command = (_client: Client, message: Message, args: string[],
     maxRoll = parseInt(diceAndModifier);
   }
 
-  let results = [];
+  const results = [];
   let total = Number(modifier);
   for (let die = 0; die < numDice; die++) {
     const n = Math.floor(Math.random() * maxRoll + 1);
