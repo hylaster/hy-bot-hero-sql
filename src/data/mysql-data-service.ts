@@ -1,6 +1,7 @@
 import { DataService, UserRatingPair, TopTwo } from './dataservice';
 import { Pool, MysqlError } from 'mysql';
-import { Snowflake } from 'discord.js';
+import { Snowflake, Guild } from 'discord.js';
+import readline from 'readline';
 
 const getSqlDateString = (date: Date) =>
   `'${date.getUTCFullYear()}-${date.getUTCMonth()}-${date.getUTCDate()}'`;
@@ -108,6 +109,55 @@ export class MySqlDataService implements DataService {
         } else {
           console.log('match results recorded');
           resolve(true);
+        }
+      }));
+  }
+
+  deleteAllDataForServer(server: Guild) {
+    const snowflake = server.id;
+
+    const io = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+
+    io.question(`Really delete ALL data for server ${server.name}? (y/n)`, resp => {
+      if (resp.toLowerCase() === 'y') {
+        console.log(`Deleting all data for server ${snowflake}`);
+        const deleteAll = Promise.all([this.deleteAllMatchesForServer(snowflake), this.deleteAllUsersForServer(snowflake)]);
+        deleteAll.then(() => {
+          console.log('Data deleted successfully.');
+        }).catch(console.error);
+      }
+    });
+  }
+
+  private deleteAllMatchesForServer(server: Snowflake): Promise<void> {
+    const query = 'DELETE FROM match_by_server WHERE server = ?';
+    const params = [server];
+
+    return new Promise<void>((resolve, reject) =>
+      this.pool.query(query, params, function (err) {
+        if (err) {
+          reject(err);
+        } else {
+          console.log(`Deleted all matches for ${server}.`);
+          resolve();
+        }
+      }));
+  }
+
+  private deleteAllUsersForServer(server: Snowflake): Promise<void> {
+    const query = 'DELETE FROM user_by_server WHERE server = ?';
+    const params = [server];
+
+    return new Promise<void>((resolve, reject) =>
+      this.pool.query(query, params, function (err) {
+        if (err) {
+          reject(err);
+        } else {
+          console.log(`Deleted all matches for ${server}.`);
+          resolve();
         }
       }));
   }
