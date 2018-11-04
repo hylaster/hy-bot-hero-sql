@@ -2,8 +2,8 @@ import Discord from 'discord.js';
 import { DataService } from './data/dataservice';
 import { HyBotConfig } from './hybot-config';
 import { Command } from './command/command';
-import { CommandLocator } from './command/locator';
-import { CommandMessageParts, MessageParser } from './command/message-parser';
+import { getCommand } from './command/location';
+import { CommandMessageParts, parseCommand } from './command/message-parser';
 
 export interface ConnectResponse {
   token: string;
@@ -50,11 +50,10 @@ export class HyBot {
     if (!this.messageIsIntendedForBot(message)) return;
 
     const messageParts: CommandMessageParts | undefined =
-      MessageParser.parseCommand(this.config.prefix, message);
+        parseCommand(this.config.prefix, message);
 
     if (messageParts == null) return;
-
-    const command: Command | undefined = CommandLocator.getCommand(messageParts.commandName);
+    const command: Command | undefined = getCommand(messageParts.commandName);
 
     if (command == null) {
       message.channel.send(`There is no *${messageParts.commandName}* command.`);

@@ -12,7 +12,5 @@ const commandMap: Map<CommandName, Command> = new Map([
   [CommandName.Timer, Commands.Timer]
 ]);
 
-export namespace CommandLocator {
-  export const getCommand = (name: string | CommandName) => commandMap.get(name as CommandName);
-  export const commandWithNameExists = (name: string | CommandName) => commandMap.has(name as CommandName);
-}
+export const getCommand = (name: string | CommandName) => commandMap.get(name as CommandName);
+export const commandWithNameExists = (name: string | CommandName) => commandMap.has(name as CommandName);
