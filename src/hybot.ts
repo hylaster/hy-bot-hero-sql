@@ -17,13 +17,12 @@ export class HyBot {
   public connect(): Promise<ConnectResponse> {
     const client = new Discord.Client(this.config.clientConfig);
 
-    client.on('message', this.processMessage);
-
     this.client = client;
 
     return new Promise<ConnectResponse>((resolve,reject) => {
       client.login(this.config.token)
         .then(token => {
+          client.on('message', this.processMessage.bind(this));
           resolve({ token, botUsername: client.user.username });
         }).catch(err => reject(err));
     });
@@ -42,7 +41,7 @@ export class HyBot {
   }
 
   private processMessage(message: Discord.Message) {
-    if (this.client == null) {
+    if (this.client == null || this.client.status === (Discord as any).Constants.Status.DISCONNECTED) {
       throw new Error('Attempted to process a message without a connected client.');
     }
 
