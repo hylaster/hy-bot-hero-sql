@@ -9,7 +9,6 @@ const getSqlDateString = (date: Date) =>
 const sqlOutcomeRepresentation = new Map<boolean, string>([[true, 'winvs'], [false, 'lossvs']]);
 
 export class MySqlDataService implements DataService {
-
   constructor(private pool: Pool, private userTableName: string, private matchTableName: string) { }
 
   isUserRated(userId: Snowflake, server: Snowflake): Promise<boolean> {

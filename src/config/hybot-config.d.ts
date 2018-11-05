@@ -1,7 +1,6 @@
 import Discord from 'discord.js';
 
 export interface HyBotConfig {
-
   /** Token to be used for the client to login. */
   token: string,
 

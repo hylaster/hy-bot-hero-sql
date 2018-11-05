@@ -1,7 +1,7 @@
 import Discord from 'discord.js';
 import { DataService } from './data/dataservice';
 import { HyBotConfig } from './config/hybot-config';
-import { Command } from './command/command';
+import { Command, CommandContext } from './command/command';
 import { getCommand } from './command/location';
 import { CommandMessageParts, parseCommand } from './command/message-parser';
 
@@ -46,19 +46,26 @@ export class HyBot {
     if (this.client == null || this.client.status === (Discord as any).Constants.Status.DISCONNECTED) {
       throw new Error('Attempted to process a message without a connected client.');
     }
-
     if (!this.messageIsIntendedForBot(message)) return;
 
     const messageParts: CommandMessageParts | undefined =
         parseCommand(this.config.prefix, message);
 
     if (messageParts == null) return;
+
     const command: Command | undefined = getCommand(messageParts.commandName);
 
     if (command == null) {
       message.channel.send(`There is no *${messageParts.commandName}* command.`);
     } else {
-      command(this.client, message, messageParts.args, this.dataService);
+      const context: CommandContext = {
+        client: this.client,
+        message,
+        args: messageParts.args,
+        dataService: this.dataService,
+        config: this.config
+      };
+      command(context);
     }
   }
 

@@ -1,12 +1,13 @@
 import { Command } from '../command';
-import { Client, Message, TextChannel, DMChannel, GroupDMChannel } from 'discord.js';
-import { DataService } from '../../data/dataservice';
+import { TextChannel, DMChannel, GroupDMChannel } from 'discord.js';
 
 const sendInvalidArgsString = (channel: TextChannel | DMChannel | GroupDMChannel) => {
   channel.send('Please enter a valid dice string. Examples include 3d6, 2d4+3, 6d4-6');
 };
 
-export const Roll: Command = (_client: Client, message: Message, args: string[], _dataService: DataService) => {
+export const Roll: Command = (context) => {
+  const { message, args } = context;
+
   if (args.length < 1) {
     sendInvalidArgsString(message.channel);
     return;

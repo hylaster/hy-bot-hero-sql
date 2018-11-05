@@ -1,8 +1,9 @@
 import { Command } from '../command';
-import { Client, Message } from 'discord.js';
-import { DataService, TopTwo } from '../../data/dataservice';
+import { TopTwo } from '../../data/dataservice';
 
-export const GetTop: Command = (client: Client, message: Message, _args: string[], dataService: DataService) => {
+export const GetTop: Command = (context) => {
+  const { client, message, dataService } = context;
+
   dataService.getTopTwoPlayers(message.guild.id).then((topTwo: TopTwo) => {
     const rankOne = topTwo.RankOne;
     const rankTwo = topTwo.RankTwo;

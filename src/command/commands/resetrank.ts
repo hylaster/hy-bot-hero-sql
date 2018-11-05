@@ -1,10 +1,9 @@
 import { Command } from '../command';
-import { DataService } from '../../data/dataservice';
 
-const config = require('../../../config.json');
+export const ResetRank: Command = (context) => {
+  const { message, dataService, config } = context;
 
-export const ResetRank: Command = (_client, message, _args, dataService: DataService) => {
-  if (message.author.id !== config.owner) {
+  if (config.owners.includes(message.author.id)) {
     message.channel.send("Only the bot owner may reset a player's ranking.");
     return;
   }

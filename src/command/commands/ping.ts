@@ -1,5 +1,5 @@
 import { Command } from '../command';
 
-export const Ping: Command = (_client, message, _args) => {
-  message.channel.send('pong!').catch(console.error);
+export const Ping: Command = (context) => {
+  context.message.channel.send('pong!').catch(console.error);
 };

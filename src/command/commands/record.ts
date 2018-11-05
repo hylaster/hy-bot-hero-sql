@@ -1,16 +1,14 @@
-import Discord from 'discord.js';
 import { Command } from '../command';
-import { DataService } from '../../data/dataservice';
 import { getOrInitRanking } from '../shared/getOrInitRanking';
-const EloRating = require('elo-rating');
+import EloRating from 'elo-rating';
 
 const enum Outcome {
   Win = 'winvs',
   Loss = 'lossvs'
 }
 
-export const Record: Command = (_client: Discord.Client, message: Discord.Message,
-  args: string[], dataService: DataService) => {
+export const Record: Command = (context) => {
+  const { message, args, dataService } = context;
 
   const result = args[0].toLowerCase();
 
