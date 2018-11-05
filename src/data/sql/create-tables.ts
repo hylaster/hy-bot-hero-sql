@@ -1,5 +1,6 @@
-import MySqlPoolLocator from './mysql-pool-locator';
+import { MySqlPoolLocator } from './mysql-pool-locator';
 import dedent from 'dedent';
+import { MysqlError } from 'mysql';
 
 const pool = MySqlPoolLocator.getPool();
 
@@ -10,7 +11,7 @@ const createUserByServer =
           rating smallint
          )`;
 
-pool.query(createUserByServer, (err) => {
+pool.query(createUserByServer, (err: MysqlError) => {
   if (err) throw err;
   console.log('Created user_by_server table.');
 });
@@ -24,7 +25,7 @@ const createMatchByServer =
           authorWon bit(1)
          )`;
 
-pool.query(createMatchByServer, (err) => {
+pool.query(createMatchByServer, (err: MysqlError) => {
   if (err) throw err;
   console.log('Created match_by_server table.');
 });

@@ -2,7 +2,7 @@ import { Command } from '../command';
 import { getOrInitRanking } from '../shared/getOrInitRanking';
 import EloRating from 'elo-rating';
 
-const enum Outcome {
+enum Outcome {
   Win = 'winvs',
   Loss = 'lossvs'
 }
