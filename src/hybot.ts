@@ -1,6 +1,6 @@
 import Discord from 'discord.js';
 import { DataService } from './data/dataservice';
-import { HyBotConfig } from './hybot-config';
+import { HyBotConfig } from './config/hybot-config';
 import { Command } from './command/command';
 import { getCommand } from './command/location';
 import { CommandMessageParts, parseCommand } from './command/message-parser';
