@@ -8,7 +8,7 @@ export const ResetRank: Command = (context) => {
     return;
   }
 
-  let member = message.mentions.members.first().user;
+  const member = message.mentions.members.first().user;
   if (!member) {
     message.channel.send('Please tag a user.');
   } else {
