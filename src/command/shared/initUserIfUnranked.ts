@@ -1,7 +1,7 @@
 import { User, Snowflake, Message } from 'discord.js';
 import { DataService } from '../../data/dataservice';
 
-export const getOrInitRanking = (user: User, message: Message, server: Snowflake, initialRating: number, dataService: DataService): Promise<void> => {
+export const initUserIfUnranked = (user: User, message: Message, server: Snowflake, initialRating: number, dataService: DataService): Promise<void> => {
   return new Promise((resolve) => {
     dataService.isUserRated(user.id, server).
       then((isRated) => {

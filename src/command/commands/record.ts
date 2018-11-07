@@ -1,5 +1,5 @@
 import { Command } from '../command';
-import { initIfUnranked } from '../shared/getOrInitRanking';
+import { initUserIfUnranked } from '../shared/initUserIfUnranked';
 import EloRating from 'elo-rating';
 
 enum Outcome {
@@ -36,7 +36,7 @@ export const Record: Command = async (context) => {
 
   const bothEligible = await dataService.areUsersEligibleForMatch(author.id, opponent.id, server, today);
   if (bothEligible) {
-    await Promise.all([initIfUnranked(author, message, server, 1000, dataService), initIfUnranked(author, message, server, 1000, dataService)]);
+    await Promise.all([initUserIfUnranked(author, message, server, 1000, dataService), initUserIfUnranked(author, message, server, 1000, dataService)]);
 
     const [ authorRating, opponentRating ] = await Promise.all([dataService.getRating(author.id, server), dataService.getRating(opponent.id, server)]);
     const { newAuthorRating, newOpponentRating } = getRatingsAfterGame(result, authorRating, opponentRating);
