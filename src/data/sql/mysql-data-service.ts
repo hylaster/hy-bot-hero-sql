@@ -128,17 +128,17 @@ export class MySqlDataService implements DataService {
       }));
   }
 
-  addMatch(author: Snowflake, opponent: Snowflake, server: Snowflake, date: Date, authorWon: boolean): Promise<boolean> {
+  addMatch(author: Snowflake, opponent: Snowflake, server: Snowflake, date: Date, authorWon: boolean): Promise<void> {
     const query = 'INSERT INTO ?? VALUES (?, ?, ?, ?, ?)';
     const params = [this.matchTableName, author, opponent, getSqlDateString(date), server, sqlOutcomeRepresentation.get(authorWon)];
 
-    return new Promise<boolean>((resolve, reject) =>
+    return new Promise((resolve, reject) =>
       this.pool.query(query, params, function (err) {
         if (err) {
           reject(err);
         } else {
           console.log('match results recorded');
-          resolve(true);
+          resolve();
         }
       }));
   }
@@ -192,3 +192,5 @@ export class MySqlDataService implements DataService {
       }));
   }
 }
+
+// TODO: add GetOrDefault to data service, consider removing any unused methods

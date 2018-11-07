@@ -10,6 +10,6 @@ export interface DataService {
     getRating(userId: Snowflake, server: Snowflake): Promise<number>;
     updateRating(userId: Snowflake, rating: number, server: Snowflake): Promise<number>;
     areUsersEligibleForMatch(user1: Snowflake, user2: Snowflake, server: Snowflake, date: Date): Promise<boolean>;
-    addMatch(author: Snowflake, opponent: Snowflake, server: Snowflake, date: Date, authorWon: boolean): Promise<boolean>;
+    addMatch(author: Snowflake, opponent: Snowflake, server: Snowflake, date: Date, authorWon: boolean): Promise<void>;
     getTopNPlayers(server: Snowflake, n: number): Promise<UserRatingPair[]>;
 }
