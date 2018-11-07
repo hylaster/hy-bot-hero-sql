@@ -1,4 +1,4 @@
-import { DataService, UserRatingPair, TopTwo } from '../dataservice';
+import { DataService, UserRatingPair } from '../dataservice';
 import { Pool, MysqlError } from 'mysql';
 import { Snowflake, Guild } from 'discord.js';
 import readline from 'readline';
@@ -41,7 +41,7 @@ export class MySqlDataService implements DataService {
   }
 
   isUserRated(userId: Snowflake, server: Snowflake): Promise<boolean> {
-    const query = 'SELECT rating FROM ? WHERE userid = ? AND server = ?';
+    const query = 'SELECT rating FROM ?? WHERE userid = ? AND server = ?';
     const params = [this.userTableName, userId, server];
     return new Promise<boolean>((resolve, reject) =>
       this.pool.query(query, params, (err, results) => {
@@ -52,7 +52,7 @@ export class MySqlDataService implements DataService {
   }
 
   initializeUserRating(userId: Snowflake, server: Snowflake, rating: number): Promise<void> {
-    const query = 'INSERT INTO ? VALUES (?, ?, ?)';
+    const query = 'INSERT INTO ?? VALUES (?, ?, ?)';
     const params = [this.userTableName, userId, server, rating];
     return new Promise<void>((resolve, reject) =>
       this.pool.query(query, params, function (err) {
@@ -65,7 +65,7 @@ export class MySqlDataService implements DataService {
   }
 
   getRating(userId: Snowflake, server: Snowflake): Promise<number> {
-    const query = 'SELECT rating FROM ? WHERE userid = ? AND server = ?';
+    const query = 'SELECT rating FROM ?? WHERE userid = ? AND server = ?';
     const params = [this.userTableName, userId, server];
 
     return new Promise<number>((resolve, reject) =>
@@ -78,26 +78,25 @@ export class MySqlDataService implements DataService {
       }));
   }
 
-  getTopTwoPlayers(server: Snowflake): Promise<TopTwo> {
-    const query = 'SELECT userid, rating FROM ? WHERE server = ? ORDER BY rating DESC LIMIT 2;';
-    const params = [this.userTableName, server];
+  getTopNPlayers(server: Snowflake, n: number): Promise<UserRatingPair[]> {
+    const query = 'SELECT userid, rating FROM ?? WHERE server = ? ORDER BY rating DESC LIMIT ??';
+    const params = [this.userTableName, server, n];
 
-    return new Promise<{ RankOne: UserRatingPair, RankTwo: UserRatingPair }>((resolve, reject) =>
+    return new Promise((resolve, reject) =>
       this.pool.query(query, params, (err: MysqlError | null, results: any[]) => {
         if (err) {
           reject(err);
         } else {
-          resolve({
-            RankOne: { userId: results[0].userid, rating: results[0].rating },
-            RankTwo: { userId: results[1].userid, rating: results[1].rating }
-          });
+          const topUsers: UserRatingPair[] = results.map(result => ({ userId: result.userid, rating: result.rating }));
+
+          resolve(topUsers);
         }
       }));
   }
 
   areUsersEligibleForMatch(user1: Snowflake, user2: Snowflake, server: Snowflake, date: Date): Promise<boolean> {
     const isUserEligible = (user1: Snowflake, user2: Snowflake) => {
-      const query = 'SELECT * FROM ? WHERE user1 = ? AND user2 = ? AND record_date = ? AND server = ?';
+      const query = 'SELECT * FROM ?? WHERE user1 = ? AND user2 = ? AND record_date = ? AND server = ?';
       const params = [this.matchTableName, user1, user2, getSqlDateString(date), server];
 
       return new Promise<boolean>((resolve, reject) =>
@@ -115,7 +114,7 @@ export class MySqlDataService implements DataService {
   }
 
   updateRating(userId: Snowflake, rating: number, server: Snowflake): Promise<number> {
-    const query = 'UPDATE ? SET rating = ? WHERE userid = ? AND server = ?';
+    const query = 'UPDATE ?? SET rating = ? WHERE userid = ? AND server = ?';
     const params = [this.userTableName, rating, userId, server];
 
     return new Promise<number>((resolve, reject) =>
@@ -130,7 +129,7 @@ export class MySqlDataService implements DataService {
   }
 
   addMatch(author: Snowflake, opponent: Snowflake, server: Snowflake, date: Date, authorWon: boolean): Promise<boolean> {
-    const query = 'INSERT INTO ? VALUES (?, ?, ?, ?, ?)';
+    const query = 'INSERT INTO ?? VALUES (?, ?, ?, ?, ?)';
     const params = [this.matchTableName, author, opponent, getSqlDateString(date), server, sqlOutcomeRepresentation.get(authorWon)];
 
     return new Promise<boolean>((resolve, reject) =>
@@ -164,7 +163,7 @@ export class MySqlDataService implements DataService {
   }
 
   private deleteAllMatchesForServer(server: Snowflake): Promise<void> {
-    const query = 'DELETE FROM ? WHERE server = ?';
+    const query = 'DELETE FROM ?? WHERE server = ?';
     const params = [this.matchTableName, server];
 
     return new Promise<void>((resolve, reject) =>
@@ -179,7 +178,7 @@ export class MySqlDataService implements DataService {
   }
 
   private deleteAllUsersForServer(server: Snowflake): Promise<void> {
-    const query = 'DELETE FROM ? WHERE server = ?';
+    const query = 'DELETE FROM ?? WHERE server = ?';
     const params = [this.userTableName, server];
 
     return new Promise<void>((resolve, reject) =>
