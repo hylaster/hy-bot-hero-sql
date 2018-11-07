@@ -7,10 +7,10 @@ import mysql from 'mysql';
 const config: HyBotMySqlConfig = require('../config.json');
 
 const pool = mysql.createPool({
-
   connectionLimit: 10,
   host: 'hybot.cbce7r2dyrtw.us-east-1.rds.amazonaws.com',
   port: 3306,
+  database: 'hybot',
   user: 'root',
   password: 'superasbestosman34'
 });
