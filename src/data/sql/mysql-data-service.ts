@@ -2,6 +2,8 @@ import { DataService, UserRatingPair, TopTwo } from '../dataservice';
 import { Pool, MysqlError } from 'mysql';
 import { Snowflake, Guild } from 'discord.js';
 import readline from 'readline';
+import { tablesExist, createUserTable, createMatchTable } from './table-management';
+import dedent = require('dedent');
 
 const getSqlDateString = (date: Date) =>
   `'${date.getUTCFullYear()}-${date.getUTCMonth()}-${date.getUTCDate()}'`;
@@ -9,7 +11,34 @@ const getSqlDateString = (date: Date) =>
 const sqlOutcomeRepresentation = new Map<boolean, string>([[true, 'winvs'], [false, 'lossvs']]);
 
 export class MySqlDataService implements DataService {
-  constructor(private pool: Pool, private userTableName: string, private matchTableName: string) { }
+  private constructor(private pool: Pool, private userTableName: string, private matchTableName: string) { }
+
+  static async createService(pool: Pool, userTableName: string, matchTableName: string,
+    createMissingTables: boolean = false): Promise<MySqlDataService> {
+
+    const tableNames: string[] = [userTableName, matchTableName];
+    const doesTableExist: boolean[] = await tablesExist(pool, tableNames);
+
+    const tableCreators: Promise<void>[] = [];
+
+    const missingTables = doesTableExist.map((tableExists, index) => {
+      return tableExists ? null : tableNames[index];
+    }).filter(value => value != null);
+
+    if (missingTables.length > 0) {
+      if (createMissingTables) {
+        if (missingTables.includes(userTableName)) tableCreators.push(createUserTable(pool, userTableName));
+        if (missingTables.includes(matchTableName)) tableCreators.push(createMatchTable(pool, matchTableName));
+      } else {
+        throw new Error(dedent`There are missing tables: ${missingTables}.
+                               Use the built-in functions to create the tables, or set the createMissingTables parameter.`);
+      }
+    }
+
+    await Promise.all(tableCreators);
+
+    return new MySqlDataService(pool, userTableName, matchTableName);
+  }
 
   isUserRated(userId: Snowflake, server: Snowflake): Promise<boolean> {
     const query = 'SELECT rating FROM ? WHERE userid = ? AND server = ?';

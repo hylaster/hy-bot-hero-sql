@@ -28,7 +28,7 @@ export const Roll: Command = (context) => {
   const numFaces = parseInt(matches[2]);
   const modifier = (matches[3] != null) ? parseInt(matches[3]) : 0;
 
-  const results = [];
+  const results: number[] = [];
   let total = Number(modifier);
   for (let die = 0; die < numDice; die++) {
     const n = Math.floor(Math.random() * numFaces + 1);

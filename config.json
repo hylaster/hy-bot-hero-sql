@@ -4,7 +4,7 @@
   "owner": "368485403340046336",
   "clientConfig": {},
   "sql": {
-    "userTableName": "user_by_server",
-    "matchTableName": "match_by_server"
+    "userTableName": "user_by_server_test",
+    "matchTableName": "match_by_server_test"
   }
 }
