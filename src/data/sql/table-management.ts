@@ -9,9 +9,13 @@ export function tableExists(pool: Pool, tableName: string): Promise<boolean> {
 
   return new Promise<boolean>((resolve, reject) => {
     pool.query(query, [tableName], (err, results: []) => {
-      if (err) reject(err);
-      else if (results == null) resolve(true);
-      else if (results.length > 0) resolve(false);
+      if (err) {
+        reject(err);
+      } else if (results == null || results.length === 0) {
+        resolve(false);
+      } else if (results.length > 0) {
+        resolve(true);
+      }
     });
   });
 }
@@ -22,7 +26,7 @@ export async function tablesExist(pool: Pool, tableNames: string[]): Promise<boo
 
 export function createUserTable(pool: Pool, tableName: string): Promise<void> {
   const createUserByServer =
-    dedent`CREATE TABLE ? (
+    dedent`CREATE TABLE ?? (
           userid varchar(64),
           server varchar(64),
           rating smallint
@@ -42,7 +46,7 @@ export function createUserTable(pool: Pool, tableName: string): Promise<void> {
 
 export function createMatchTable(pool: Pool, tableName: string): Promise<void> {
   const createMatchByServer =
-    dedent`CREATE TABLE ? (
+    dedent`CREATE TABLE ?? (
           author varchar(64),
           opponent varchar(64),
           record_date DATE,
