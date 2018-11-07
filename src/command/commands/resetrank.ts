@@ -1,6 +1,6 @@
 import { Command } from '../command';
 
-export const ResetRank: Command = (context) => {
+export const ResetRank: Command = async (context) => {
   const { message, dataService, config } = context;
 
   if (config.owners.includes(message.author.id)) {
@@ -15,15 +15,14 @@ export const ResetRank: Command = (context) => {
     const userId = member.id;
     const server = message.guild.id;
 
-    dataService.isUserRated(userId, server)
-    .then((userIsRated) => {
-      if (userIsRated) {
-        dataService.updateRating(userId, 1000, server).then((newRanking: number) => {
-          message.channel.send(`Ranking reset to ${newRanking}`);
-        });
-      } else {
-        message.channel.send('User is not rated.');
-      }
-    });
+    const userIsRated = await dataService.isUserRated(userId, server);
+
+    if (userIsRated) {
+      dataService.updateRating(userId, 1000, server).then((newRanking: number) => {
+        message.channel.send(`Ranking reset to ${newRanking}`);
+      });
+    } else {
+      message.channel.send('User is not rated.');
+    }
   }
 };

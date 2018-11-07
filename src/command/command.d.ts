@@ -2,9 +2,7 @@ import Discord from "discord.js";
 import {DataService} from "../data/dataservice";
 import { HyBotConfig } from '../config/hybot-config';
 
-export interface Command {
-    (context: CommandContext): void;
-}
+export type Command = (context: CommandContext) => Promise<void>;
 
 export interface CommandContext {
     client: Discord.Client,
