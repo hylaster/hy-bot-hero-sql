@@ -18,7 +18,7 @@ export const ResetRank: Command = async (context) => {
     const userIsRated = await dataService.isUserRated(userId, server);
 
     if (userIsRated) {
-      dataService.updateRating(userId, 1000, server).then((newRanking: number) => {
+      dataService.setRating(userId, 1000, server).then((newRanking: number) => {
         message.channel.send(`Ranking reset to ${newRanking}`);
       });
     } else {

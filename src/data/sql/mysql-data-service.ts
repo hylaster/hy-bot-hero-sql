@@ -64,7 +64,7 @@ export class MySqlDataService implements DataService {
       }));
   }
 
-  getRating(userId: Snowflake, server: Snowflake): Promise<number> {
+  getRating(userId: Snowflake, server: Snowflake): Promise<number | null> {
     const query = 'SELECT rating FROM ?? WHERE userid = ? AND server = ?';
     const params = [this.userTableName, userId, server];
 
@@ -73,7 +73,8 @@ export class MySqlDataService implements DataService {
         if (err) {
           reject(err);
         } else {
-          resolve(results[0].rating);
+          const result: number | undefined = results[0];
+          resolve(result != null ? results[0].rating : null);
         }
       }));
   }
@@ -113,7 +114,7 @@ export class MySqlDataService implements DataService {
     });
   }
 
-  updateRating(userId: Snowflake, rating: number, server: Snowflake): Promise<number> {
+  setRating(userId: Snowflake, rating: number, server: Snowflake): Promise<number> {
     const query = 'UPDATE ?? SET rating = ? WHERE userid = ? AND server = ?';
     const params = [this.userTableName, rating, userId, server];
 
