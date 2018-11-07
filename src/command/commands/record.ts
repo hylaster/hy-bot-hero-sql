@@ -36,22 +36,24 @@ export const Record: Command = async (context) => {
 
   const bothEligible = await dataService.areUsersEligibleForMatch(author.id, opponent.id, server, today);
   if (bothEligible) {
-    await Promise.all([initUserIfUnranked(author, message, server, 1000, dataService), initUserIfUnranked(author, message, server, 1000, dataService)]);
+    await Promise.all([initUserIfUnranked(author, message, server, 1000, dataService),
+      initUserIfUnranked(author, message, server, 1000, dataService)]);
 
     const [ authorRating, opponentRating ] = await Promise.all([dataService.getRating(author.id, server), dataService.getRating(opponent.id, server)]);
-    const { newAuthorRating, newOpponentRating } = getRatingsAfterGame(result, authorRating, opponentRating);
+    const { newAuthorRating, newOpponentRating } = getRatingsAfterMatch(result, authorRating, opponentRating);
 
     const authorWon = result === Outcome.Win;
     await dataService.addMatch(author.id, opponent.id, server, today, authorWon);
     await Promise.all([dataService.updateRating(author.id, newAuthorRating, server),
       dataService.updateRating(opponent.id, newOpponentRating, server)]);
+
     message.channel.send(`Recording ${message.author.username}'s ${result} ${opponent}`);
   } else {
     message.channel.send('You two can have fun with each other, but can only record one match with each other per day.');
   }
 };
 
-function getRatingsAfterGame(result: Outcome, authorRating: number, opponentRating: number) {
+function getRatingsAfterMatch(result: Outcome, authorRating: number, opponentRating: number) {
 
   const eloResults = EloRating.calculate(authorRating, opponentRating, result === Outcome.Win);
   let difference = Math.abs(authorRating - eloResults.playerRating);
