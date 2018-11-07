@@ -1,5 +1,5 @@
 import { Command } from '../command';
-import { getOrInitRanking } from '../shared/getOrInitRanking';
+import { initIfUnranked } from '../shared/getOrInitRanking';
 import EloRating from 'elo-rating';
 
 enum Outcome {
@@ -7,7 +7,7 @@ enum Outcome {
   Loss = 'lossvs'
 }
 
-export const Record: Command = (context) => {
+export const Record: Command = async (context) => {
   const { message, args, dataService } = context;
 
   const result = args[0].toLowerCase();
@@ -33,34 +33,22 @@ export const Record: Command = (context) => {
   }
 
   const server = message.guild.id;
-  // 1. find if match is eligible
-  // 2. if so, get both ratings
-  // 3. then, update the ratings
-  dataService.areUsersEligibleForMatch(author.id, opponent.id, server, today)
-    .then((bothEligible) => {
-      if (bothEligible) {
-        Promise.all([getOrInitRanking(author, message, server, 1000, dataService), author, message, server, 1000, dataService]).then(_ => {
-          Promise.all([dataService.getRating(author.id, server), dataService.getRating(opponent.id, server)]).then(([authorRating, opponentRating]) => {
-            console.log('Ratings obtained.');
 
-            let newAuthorRating: number;
-            let newOpponentRating: number;
-            ({ newAuthorRating, newOpponentRating } = getRatingsAfterGame(result, authorRating, opponentRating));
+  const bothEligible = await dataService.areUsersEligibleForMatch(author.id, opponent.id, server, today);
+  if (bothEligible) {
+    await Promise.all([initIfUnranked(author, message, server, 1000, dataService), initIfUnranked(author, message, server, 1000, dataService)]);
 
-            const authorWon = result === Outcome.Win;
-            dataService.addMatch(author.id, opponent.id, server, today, authorWon).then(_ => {
-              console.log('match added');
-              Promise.all([dataService.updateRating(author.id, newAuthorRating, server),
-                dataService.updateRating(opponent.id, newOpponentRating, server)])
-                .then(_ => message.channel.send(`Recording ${message.author.username}'s ${result} ${opponent}`));
-            }
-            );
-          });
-        });
-      } else {
-        message.channel.send('You two can have fun with each other, but can only record one match with each other per day.');
-      }
-    }).catch((error) => console.log(error));
+    const [ authorRating, opponentRating ] = await Promise.all([dataService.getRating(author.id, server), dataService.getRating(opponent.id, server)]);
+    const { newAuthorRating, newOpponentRating } = getRatingsAfterGame(result, authorRating, opponentRating);
+
+    const authorWon = result === Outcome.Win;
+    await dataService.addMatch(author.id, opponent.id, server, today, authorWon);
+    await Promise.all([dataService.updateRating(author.id, newAuthorRating, server),
+      dataService.updateRating(opponent.id, newOpponentRating, server)]);
+    message.channel.send(`Recording ${message.author.username}'s ${result} ${opponent}`);
+  } else {
+    message.channel.send('You two can have fun with each other, but can only record one match with each other per day.');
+  }
 };
 
 function getRatingsAfterGame(result: Outcome, authorRating: number, opponentRating: number) {

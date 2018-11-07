@@ -65,7 +65,10 @@ export class HyBot {
         dataService: this.dataService,
         config: this.config
       };
-      command(context);
+      command(context).catch(err => {
+        message.channel.send('Sorry, something went wrong.');
+        console.log(err);
+      });
     }
   }
 

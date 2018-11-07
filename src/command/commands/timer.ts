@@ -1,6 +1,6 @@
 import { Command } from '../command';
 
-export const Timer: Command = (context) => {
+export const Timer: Command = async (context) => {
   const { message, args } = context;
 
   const time = Number(args[0]) * 1000;

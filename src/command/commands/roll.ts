@@ -2,10 +2,10 @@ import { Command } from '../command';
 import { TextChannel, DMChannel, GroupDMChannel } from 'discord.js';
 
 const sendInvalidArgsString = (channel: TextChannel | DMChannel | GroupDMChannel) => {
-  channel.send('Please enter a valid dice string. Examples include 3d6, 2d4+3, 6d4-6');
+  channel.send('When using this command, also provider a valid dice string. Examples include 3d6, 2d4+3, 6d4-6');
 };
 
-export const Roll: Command = (context) => {
+export const Roll: Command = async (context) => {
   const { message, args } = context;
 
   if (args.length < 1) {
