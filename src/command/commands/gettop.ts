@@ -1,17 +1,24 @@
 import { Command } from '../command';
-import { UserRatingPair } from 'src/data/dataservice';
+import { UserRatingPair, DataService } from 'src/data/data-service';
+import { Client, Message } from 'discord.js';
 
-export const GetTop: Command = async (context) => {
-  const { client, message, dataService } = context;
+export class GetTop implements Command {
+  name = 'gettop';
+  helpText = 'Gets the top two ranked players.';
 
-  const topUsers: UserRatingPair[] = await dataService.getTopNPlayers(message.guild.id, 2);
-  const rankOne: UserRatingPair | undefined = topUsers[0];
-  const rankTwo: UserRatingPair | undefined = topUsers[1];
+  constructor(private dataService: DataService, private client: Client) { }
 
-  if (rankOne && rankTwo) {
-    message.channel.send(`Top rating is ${client.users.get(rankOne.userId)} at ${rankOne.rating}
-                2nd place is ${client.users.get(rankTwo.userId)} at ${rankTwo.rating}`);
-  } else {
-    message.channel.send('There are less than two users ranked..');
+  execute = async (message: Message, _args: string[]) => {
+
+    const topUsers: UserRatingPair[] = await this.dataService.getTopNPlayers(message.guild.id, 2);
+    const rankOne: UserRatingPair | undefined = topUsers[0];
+    const rankTwo: UserRatingPair | undefined = topUsers[1];
+
+    if (rankOne && rankTwo) {
+      message.channel.send(`Top rating is ${this.client.users.get(rankOne.userId)} at ${rankOne.rating}
+                2nd place is ${this.client.users.get(rankTwo.userId)} at ${rankTwo.rating}`);
+    } else {
+      message.channel.send('There are less than two users ranked..');
+    }
   }
-};
+}

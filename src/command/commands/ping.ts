@@ -1,5 +1,12 @@
 import { Command } from '../command';
+import { Message } from 'discord.js';
 
-export const Ping: Command = async (context) => {
-  context.message.channel.send('pong!').catch(console.error);
-};
+export class Ping implements Command {
+  name = 'ping';
+
+  helpText = "I'll say pong if you say ping.";
+
+  async execute(message: Message, _args: string[]) {
+    message.channel.send('pong!');
+  }
+}

@@ -1,33 +1,23 @@
-import Discord from 'discord.js';
-import { DataService } from './data/dataservice';
+import Discord, { Client } from 'discord.js';
 import { HyBotConfig } from './config/hybot-config';
-import { Command, CommandContext } from './command/command';
-import { getCommand } from './command/location';
+import { Command } from './command/command';
 import { CommandMessageParts, parseCommand } from './command/message-parser';
-
-export interface ConnectResponse {
-  token: string;
-  botUsername: string;
-}
+import { CommandRegistry } from './command/command-registry';
 
 export class HyBot {
 
   private client?: Discord.Client;
+  public commandRegistry: CommandRegistry = new CommandRegistry();
 
-  public constructor(private config: HyBotConfig, private dataService: DataService) {}
+  public constructor(private config: HyBotConfig) {}
 
-  public connect(): Promise<ConnectResponse> {
+  public async connect(): Promise<Client> {
     const client = new Discord.Client(this.config.clientConfig);
-
+    await client.login(this.config.token);
     this.client = client;
+    client.on('message', this.processMessage.bind(this));
 
-    return new Promise<ConnectResponse>((resolve,reject) => {
-      client.login(this.config.token)
-        .then(token => {
-          client.on('message', this.processMessage.bind(this));
-          resolve({ token, botUsername: client.user.username });
-        }).catch(err => reject(err));
-    });
+    return client;
   }
 
   public isConnected() {
@@ -53,19 +43,12 @@ export class HyBot {
 
     if (messageParts == null) return;
 
-    const command: Command | undefined = getCommand(messageParts.commandName);
+    const command: Command | undefined = this.commandRegistry.getCommand(messageParts.commandName);
 
     if (command == null) {
       message.channel.send(`There is no *${messageParts.commandName}* command.`);
     } else {
-      const context: CommandContext = {
-        client: this.client,
-        message,
-        args: messageParts.args,
-        dataService: this.dataService,
-        config: this.config
-      };
-      command(context).catch(err => {
+      command.execute(message, messageParts.args).catch(err => {
         message.channel.send('Sorry, something went wrong.');
         console.log(err);
       });
@@ -75,5 +58,4 @@ export class HyBot {
   private messageIsIntendedForBot(message: Discord.Message) {
     return message.content.startsWith(this.config.prefix);
   }
-
 }

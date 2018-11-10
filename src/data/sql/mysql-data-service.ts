@@ -1,4 +1,4 @@
-import { DataService, UserRatingPair } from '../dataservice';
+import { DataService, UserRatingPair } from '../data-service';
 import { Pool, MysqlError } from 'mysql';
 import { Snowflake, Guild } from 'discord.js';
 import readline from 'readline';

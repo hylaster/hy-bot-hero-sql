@@ -1,5 +1,5 @@
 import { Snowflake } from 'discord.js';
-import { DataService } from '../../data/dataservice';
+import { DataService } from '../../data/data-service';
 
 export const getRatingOrDefault = async (userId: Snowflake, server: Snowflake, dataService: DataService): Promise<number> => {
   const ratingFromDatabase = await dataService.getRating(userId, server);
