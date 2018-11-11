@@ -35,7 +35,7 @@ setInterval(() => {
 async function startBot(config: HyBotConfig, dataService: DataService) {
   const bot = new HyBot(config);
   bot.commandRegistry.registerCommand(new GetRating(config.prefix, dataService));
-  bot.commandRegistry.registerCommand(new Help(bot.commandRegistry));
+  bot.commandRegistry.registerCommand(new Help(config.prefix, bot.commandRegistry, []));
   bot.commandRegistry.registerCommand(new Ping());
   bot.commandRegistry.registerCommand(new Record(config.prefix, dataService));
   bot.commandRegistry.registerCommand(new Roll(config.prefix));
@@ -44,5 +44,5 @@ async function startBot(config: HyBotConfig, dataService: DataService) {
   const client = await bot.connect();
   console.log(`Bot Client logged in as ${client.user.username}.`);
 
-  bot.commandRegistry.registerCommand(new GetTop(dataService, client));
+  bot.commandRegistry.registerCommand(new GetTop(config.prefix, dataService, client));
 }

@@ -1,4 +1,4 @@
-import { Command } from '../command';
+import { Command, CommandHelpInfo } from '../command';
 import { TextChannel, DMChannel, GroupDMChannel, Message } from 'discord.js';
 import dedent = require('dedent');
 
@@ -11,6 +11,18 @@ export class Roll implements Command {
   constructor(private commandPrefix: string) { }
 
   name = 'roll';
+
+  helpInfo: CommandHelpInfo = {
+    description: 'Rolls some number of dice, with an optional +/- modifier.',
+    argSpecs: [
+      { name: 'dice string', description: 'Specifies the number of dice to roll, the number of faces each has, ' +
+                                          'and the modifier.' }
+    ],
+    examples: [
+      `*3d6+4* => rolls three six-sided dice, and adds 4 to the result.`,
+      `*2d4-3* => rolls two four-sided dice, and substracts 3 from the result.`
+    ]
+  };
 
   helpText = dedent`Roll some number of dice, with an optional modifier (+/-).
                     Example (three 6-sided dice): *${this.commandPrefix + this.name}3d6*

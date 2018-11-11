@@ -1,12 +1,20 @@
-import { Command } from '../command';
+import { Command, CommandHelpInfo } from '../command';
 import { UserRatingPair, DataService } from 'src/data/data-service';
 import { Client, Message } from 'discord.js';
 
 export class GetTop implements Command {
-  name = 'gettop';
-  helpText = 'Gets the top two ranked players.';
 
-  constructor(private dataService: DataService, private client: Client) { }
+  constructor(private prefix: string, private dataService: DataService, private client: Client) { }
+
+  name = 'gettop';
+
+  helpInfo: CommandHelpInfo = {
+    description: "Get's a player's ranking.",
+    argSpecs: [
+      { name: 'User', description: 'A mention for a user them (i.e. @ someone).' }
+    ],
+    examples: [`${this.prefix + this.name} @ELO Bot`]
+  };
 
   execute = async (message: Message, _args: string[]) => {
 

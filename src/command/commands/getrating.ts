@@ -1,6 +1,5 @@
-import { Command } from '../command';
+import { Command, CommandHelpInfo } from '../command';
 import { getRatingOrDefault } from '../shared/getRatingOrDefault';
-import dedent = require('dedent');
 import { Message } from 'discord.js';
 import { DataService } from 'src/data/data-service';
 
@@ -10,8 +9,13 @@ export class GetRating implements Command {
 
   name = 'getrating';
 
-  helpText = dedent`Gets a player's rating.
-                    Example: ${this.prefix + this.name} @someUser`;
+  helpInfo: CommandHelpInfo = {
+    description: "Get's a player's ranking.",
+    argSpecs: [
+      { name: 'User', description: 'A mention for a user them (i.e. @ someone).' }
+    ],
+    examples: [`${this.prefix + this.name} @ELO Bot`]
+  };
 
   async execute(message: Message, _args: string[]) {
 

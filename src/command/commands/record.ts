@@ -1,9 +1,8 @@
-import { Command } from '../command';
+import { Command, CommandHelpInfo } from '../command';
 import EloRating from 'elo-rating';
 import { Snowflake, Message } from 'discord.js';
 import { DataService } from 'src/data/data-service';
 import { getRatingOrDefault } from '../shared/getRatingOrDefault';
-import dedent = require('dedent');
 
 enum Outcome {
   Win = 'winvs',
@@ -11,13 +10,21 @@ enum Outcome {
 }
 
 export class Record implements Command {
-  constructor(private commandPrefix: string, private dataService: DataService) {}
+  constructor(private prefix: string, private dataService: DataService) {}
 
   name = 'record';
 
-  helpText = dedent`Records a match between you and another player; also updates your rankings.
-                    If you won: *${this.commandPrefix + this.name} winvs @OtherUser*
-                    If you lost: *${this.commandPrefix + this.name} lossvs @OtherUser*`;
+  helpInfo: CommandHelpInfo = {
+    description: 'Records a match between you in an opponent.',
+    argSpecs: [
+      { name: 'outcome', description: `'${Outcome.Win}' if you won, or '${Outcome.Loss}' if you lost.` },
+      { name: 'user', description: `mention the user you played against (i.e. @ them)`}
+    ],
+    examples: [
+      `${this.prefix + this.name} winvs @SomeUser`,
+      `${this.prefix + this.name} lossvs @SomeUser`
+    ]
+  };
 
   async execute(message: Message, args: string[]) {
 

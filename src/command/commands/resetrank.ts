@@ -1,4 +1,4 @@
-import { Command } from '../command';
+import { Command, CommandHelpInfo } from '../command';
 import dedent = require('dedent');
 import { Message, Snowflake } from 'discord.js';
 import { DataService } from 'src/data/data-service';
@@ -8,6 +8,14 @@ export class ResetRank implements Command {
               private dataService: DataService) {}
 
   name = 'resetrank';
+
+  helpInfo: CommandHelpInfo = {
+    description: "Resets a player's rank. Can only be used by one of the authorized users: ",
+    argSpecs: [
+      { name: 'user', description: `player that will have their rank reset.` }
+    ],
+    examples: []
+  };
 
   helpText = dedent`Resets a player's rank. Only the bot owner(s) can use this command.
                     Example: *${this.commandPrefix + this.name} @SomeUser*`;
