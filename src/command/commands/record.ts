@@ -18,11 +18,11 @@ export class Record implements Command {
     description: 'Records a match between you in an opponent.',
     argSpecs: [
       { name: 'outcome', description: `'${Outcome.Win}' if you won, or '${Outcome.Loss}' if you lost.` },
-      { name: 'user', description: `mention the user you played against (i.e. @ them)`}
+      { name: 'user', description: `mention the user you played against (i.e. @ them)` }
     ],
     examples: [
-      `${this.prefix + this.name} winvs @SomeUser`,
-      `${this.prefix + this.name} lossvs @SomeUser`
+      `${this.prefix + this.name} ${Outcome.Win} @SomeUser`,
+      `${this.prefix + this.name} ${Outcome.Loss} @SomeUser`
     ]
   };
 
