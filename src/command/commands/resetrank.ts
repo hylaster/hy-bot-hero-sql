@@ -21,28 +21,26 @@ export class ResetRank implements Command {
                     Example: *${this.commandPrefix + this.name} @SomeUser*`;
 
   async execute(message: Message, _args: string[]) {
-    {
-      if (this.authorizedUsers.includes(message.author.id)) {
-        message.channel.send("Only the bot owner may reset a player's ranking.");
-        return;
-      }
+    if (this.authorizedUsers.includes(message.author.id)) {
+      message.channel.send("Only the bot owner may reset a player's ranking.");
+      return;
+    }
 
-      const member = message.mentions.members.first().user;
-      if (!member) {
-        message.channel.send('Please tag a user.');
+    const member = message.mentions.members.first().user;
+    if (!member) {
+      message.channel.send('Please tag a user.');
+    } else {
+      const userId = member.id;
+      const server = message.guild.id;
+
+      const userIsRated = await this.dataService.isUserRated(userId, server);
+
+      if (userIsRated) {
+        this.dataService.setRating(userId, 1000, server).then((newRanking: number) => {
+          message.channel.send(`Ranking reset to ${newRanking}`);
+        });
       } else {
-        const userId = member.id;
-        const server = message.guild.id;
-
-        const userIsRated = await this.dataService.isUserRated(userId, server);
-
-        if (userIsRated) {
-          this.dataService.setRating(userId, 1000, server).then((newRanking: number) => {
-            message.channel.send(`Ranking reset to ${newRanking}`);
-          });
-        } else {
-          message.channel.send('User is not rated.');
-        }
+        message.channel.send('User is not rated.');
       }
     }
   }
