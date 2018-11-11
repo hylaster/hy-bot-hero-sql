@@ -1,14 +1,9 @@
 import { Command, CommandHelpInfo } from '../command';
 import { TextChannel, DMChannel, GroupDMChannel, Message } from 'discord.js';
-import dedent = require('dedent');
-
-const sendInvalidArgsString = (channel: TextChannel | DMChannel | GroupDMChannel) => {
-  channel.send('When using this command, also provider a valid dice string. Examples include 3d6, 2d4+3, 6d4-6');
-};
 
 export class Roll implements Command {
 
-  constructor(private commandPrefix: string) { }
+  constructor(private prefix: string) { }
 
   name = 'roll';
 
@@ -19,19 +14,15 @@ export class Roll implements Command {
                                           'and the modifier.' }
     ],
     examples: [
-      `*3d6+4* => rolls three six-sided dice, and adds 4 to the result.`,
-      `*2d4-3* => rolls two four-sided dice, and substracts 3 from the result.`
+      `${this.prefix + this.name}3d6+4 => rolls three six-sided dice, and adds 4 to the result.`,
+      `${this.prefix + this.name}*2d4-3* => rolls two four-sided dice, and substracts 3 from the result.`
     ]
   };
-
-  helpText = dedent`Roll some number of dice, with an optional modifier (+/-).
-                    Example (three 6-sided dice): *${this.commandPrefix + this.name}3d6*
-                    Example (with modifier): *${this.commandPrefix + this.name}2d4+3*`;
 
   async execute(message: Message, args: string[]) {
 
     if (args.length < 1) {
-      sendInvalidArgsString(message.channel);
+      this.sendInvalidArgsString(message.channel);
       return;
     }
 
@@ -42,7 +33,7 @@ export class Roll implements Command {
     const matches = diceString.match(dieRegex);
 
     if (matches == null) {
-      sendInvalidArgsString(message.channel);
+      this.sendInvalidArgsString(message.channel);
       return;
     }
 
@@ -58,6 +49,13 @@ export class Roll implements Command {
       total += n;
     }
 
-    message.channel.send(`Results: ${results.join(' ')} | Total With Modifier: ${total}`);
+    let resultsMessage = `Results: ${ results.join(', ')}`;
+    resultsMessage += `\nTotal${modifier === 0 ? '' : ' With Modifier'}: **${total}**`;
+
+    message.channel.send(resultsMessage);
+  }
+
+  private sendInvalidArgsString = (channel: TextChannel | DMChannel | GroupDMChannel) => {
+    channel.send('When using this command, also provide a valid dice string. Examples include 3d6, 2d4+3, 6d4-6');
   }
 }
