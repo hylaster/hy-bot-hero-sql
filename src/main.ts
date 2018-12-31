@@ -12,6 +12,9 @@ const config: HyBotMySqlConfig = require('../config.json');
 
 const pool = mysql.createPool({
   connectionLimit: 10,
+  connectTimeout  : 60 * 60 * 1000,
+  aquireTimeout   : 60 * 60 * 1000,
+  timeout         : 60 * 60 * 1000,
   host: 'hybot.cbce7r2dyrtw.us-east-1.rds.amazonaws.com',
   port: 3306,
   database: 'hybot',
