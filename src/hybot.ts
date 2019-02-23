@@ -7,7 +7,7 @@ import { CommandRegistry } from './command/command-registry';
 export class HyBot {
 
   private client?: Discord.Client;
-  public commandRegistry: CommandRegistry = new CommandRegistry();
+  public commandRegistry = new CommandRegistry();
 
   public constructor(private config: HyBotConfig) {}
 
@@ -43,12 +43,12 @@ export class HyBot {
 
     if (messageParts == null) return;
 
-    const command: Command | undefined = this.commandRegistry.getCommand(messageParts.commandName);
+    const command: Command | undefined = this.commandRegistry.getCommandByName(messageParts.commandName);
 
     if (command == null) {
       message.channel.send(`There is no *${messageParts.commandName}* command.`);
     } else {
-      command.execute(message, messageParts.args).catch(err => {
+      command.action(message, messageParts.args).catch(err => {
         message.channel.send('Sorry, something went wrong.');
         console.log(err);
       });

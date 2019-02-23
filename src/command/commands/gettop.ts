@@ -4,7 +4,7 @@ import { Client, Message } from 'discord.js';
 
 export class GetTop implements Command {
 
-  constructor(private prefix: string, private dataService: DataService, private client: Client) { }
+  public constructor(private prefix: string, private dataService: DataService, private client: Client) { }
 
   name = 'gettop';
 
@@ -16,8 +16,7 @@ export class GetTop implements Command {
     examples: [`${this.prefix + this.name} @ELO Bot`]
   };
 
-  execute = async (message: Message, _args: string[]) => {
-
+  public async action(message: Message, _args: string[]) {
     const topUsers: UserRatingPair[] = await this.dataService.getTopNPlayers(message.guild.id, 2);
     const rankOne: UserRatingPair | undefined = topUsers[0];
     const rankTwo: UserRatingPair | undefined = topUsers[1];

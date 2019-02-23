@@ -2,7 +2,7 @@ import { Command, CommandHelpInfo } from '../command';
 import EloRating from 'elo-rating';
 import { Snowflake, Message } from 'discord.js';
 import { DataService } from 'src/data/data-service';
-import { getRatingOrDefault } from '../shared/getRatingOrDefault';
+import { getRatingOrDefault } from '../shared/get-rating-or-default';
 
 enum Outcome {
   Win = 'winvs',
@@ -10,11 +10,11 @@ enum Outcome {
 }
 
 export class Record implements Command {
-  constructor(private prefix: string, private dataService: DataService) {}
+  public constructor(private prefix: string, private dataService: DataService) {}
 
-  name = 'record';
+  public name = 'record';
 
-  helpInfo: CommandHelpInfo = {
+  public helpInfo: CommandHelpInfo = {
     description: 'Records a match between you in an opponent.',
     argSpecs: [
       { name: 'outcome', description: `'${Outcome.Win}' if you won, or '${Outcome.Loss}' if you lost.` },
@@ -26,8 +26,7 @@ export class Record implements Command {
     ]
   };
 
-  async execute(message: Message, args: string[]) {
-
+  public async action(message: Message, args: string[]) {
     const result = args[0].toLowerCase();
 
     if (result !== Outcome.Win && result !== Outcome.Loss) {
@@ -66,7 +65,6 @@ export class Record implements Command {
   }
 
   private getRatingsAfterMatch(authorWon: boolean, authorRating: number, opponentRating: number) {
-
     const eloResults = EloRating.calculate(authorRating, opponentRating, authorWon);
     let difference = Math.abs(authorRating - eloResults.playerRating);
     console.log('difference is ' + difference);
@@ -80,6 +78,7 @@ export class Record implements Command {
 
   private async updateRatings(authorId: Snowflake, opponentId: Snowflake, server: Snowflake,
     authorWon: boolean, dataService: DataService) {
+
     const [authorRating, opponentRating] = await Promise.all([getRatingOrDefault(authorId, server, dataService),
       getRatingOrDefault(opponentId, server, dataService)]);
     const { newAuthorRating, newOpponentRating } = this.getRatingsAfterMatch(authorWon, authorRating, opponentRating);

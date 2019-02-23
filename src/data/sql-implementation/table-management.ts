@@ -1,6 +1,8 @@
 import dedent from 'dedent';
 import { Pool } from 'mysql';
 
+// Static functions for setting up tables used by the mysql implementation.
+
 export function tableExists(pool: Pool, tableName: string): Promise<boolean> {
   const query =
     dedent`SELECT *

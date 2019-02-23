@@ -1,15 +1,15 @@
 import { Command, CommandHelpInfo } from '../command';
-import { getRatingOrDefault } from '../shared/getRatingOrDefault';
+import { getRatingOrDefault } from '../shared/get-rating-or-default';
 import { Message } from 'discord.js';
 import { DataService } from 'src/data/data-service';
 
 export class GetRating implements Command {
 
-  constructor(private prefix: string, private dataService: DataService) {}
+  public constructor(private prefix: string, private dataService: DataService) {}
 
-  name = 'getrating';
+  public name = 'getrating';
 
-  helpInfo: CommandHelpInfo = {
+  public helpInfo: CommandHelpInfo = {
     description: "Get's a player's ranking.",
     argSpecs: [
       { name: 'User', description: 'A mention for a user them (i.e. @ someone).' }
@@ -17,8 +17,7 @@ export class GetRating implements Command {
     examples: [`${this.prefix + this.name} @ELO Bot`]
   };
 
-  async execute(message: Message, _args: string[]) {
-
+  public async action(message: Message, _args: string[]) {
     const firstMention = message.mentions.members.first();
 
     if (firstMention == null) {
@@ -32,5 +31,4 @@ export class GetRating implements Command {
 
     message.channel.send(`${user.username}'s rating is ${rating}.`);
   }
-
 }

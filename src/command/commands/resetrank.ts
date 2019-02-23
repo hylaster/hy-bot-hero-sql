@@ -4,12 +4,12 @@ import { Message, Snowflake } from 'discord.js';
 import { DataService } from 'src/data/data-service';
 
 export class ResetRank implements Command {
-  constructor(private commandPrefix: string, private authorizedUsers: Snowflake[],
+  public constructor(private commandPrefix: string, private authorizedUsers: Snowflake[],
               private dataService: DataService) {}
 
-  name = 'resetrank';
+  public name = 'resetrank';
 
-  helpInfo: CommandHelpInfo = {
+  public helpInfo: CommandHelpInfo = {
     description: "Resets a player's rank. Can only be used by one of the authorized users: ",
     argSpecs: [
       { name: 'user', description: `player that will have their rank reset.` }
@@ -17,10 +17,10 @@ export class ResetRank implements Command {
     examples: []
   };
 
-  helpText = dedent`Resets a player's rank. Only the bot owner(s) can use this command.
+  public helpText = dedent`Resets a player's rank. Only the bot owner(s) can use this command.
                     Example: *${this.commandPrefix + this.name} @SomeUser*`;
 
-  async execute(message: Message, _args: string[]) {
+  public async action(message: Message, _args: string[]) {
     if (this.authorizedUsers.includes(message.author.id)) {
       message.channel.send("Only the bot owner may reset a player's ranking.");
       return;
