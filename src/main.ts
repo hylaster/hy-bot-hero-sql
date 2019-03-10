@@ -1,5 +1,5 @@
 import http from 'http';
-import { MySqlDataService } from './data/sql/mysql-data-service';
+import { MySqlDataService } from './data/sql-implementation/mysql-data-service';
 import { HyBot } from './hybot';
 import { HyBotMySqlConfig } from './config/hybot-mysql-config';
 import mysql from 'mysql';
@@ -7,33 +7,39 @@ import { HyBotConfig } from './config/hybot-config';
 import { DataService } from './data/data-service';
 import { GetRating, GetTop, Ping, Record, Roll, Timer } from './command/commands';
 import { Help } from './command/commands/help';
+const read = require('read');
+
+// Spins up an implementation of Hybot.
 
 const config: HyBotMySqlConfig = require('../config.json');
 
-const pool = mysql.createPool({
-  connectionLimit: 10,
-  connectTimeout  : 60 * 60 * 1000,
-  aquireTimeout   : 60 * 60 * 1000,
-  timeout         : 60 * 60 * 1000,
-  host: 'hybot.cbce7r2dyrtw.us-east-1.rds.amazonaws.com',
-  port: 3306,
-  database: 'hybot',
-  user: 'root',
-  password: 'superasbestosman34'
-});
+async function start() {
+  const { user, password } = await getCredentials();
 
-MySqlDataService.createService(pool, config.sql.userTableName, config.sql.matchTableName, true)
-  .then(async service => {
-    await startBot(config, service);
-  }).catch(err => {
-    console.log('Error creating sql data service:');
-    console.log(err);
+  const pool = mysql.createPool({
+    connectionLimit: 10,
+    connectTimeout: 60 * 60 * 1000,
+    timeout: 60 * 60 * 1000,
+    host: 'hybot.cbce7r2dyrtw.us-east-1.rds.amazonaws.com',
+    port: 3306,
+    database: 'hybot',
+    user,
+    password
   });
 
-// prevent heroku shelving our app
-setInterval(() => {
-  http.get('http://hy-bot-hero-sql.herokuapp.com');
-}, 900000);
+  const dataService = await MySqlDataService.createService(pool, config.sql.userTableName, config.sql.matchTableName, true);
+  startBot(config, dataService);
+}
+
+function getCredentials(): Promise<{ user: string, password: string }> {
+  return new Promise((resolve, _reject) => {
+    read({ prompt: 'Database user: ' }, (_error: string, user: string) => {
+      read({ prompt: 'Password: ', silent: true }, (_error: string, password: string) => {
+        resolve({ user, password });
+      });
+    });
+  });
+}
 
 async function startBot(config: HyBotConfig, dataService: DataService) {
   const bot = new HyBot(config);
@@ -49,3 +55,10 @@ async function startBot(config: HyBotConfig, dataService: DataService) {
 
   bot.commandRegistry.registerCommand(new GetTop(config.prefix, dataService, client));
 }
+
+start();
+
+// Prevent Heroku shelving our app.
+setInterval(() => {
+  http.get('http://hy-bot-hero-sql.herokuapp.com');
+}, 900000);
