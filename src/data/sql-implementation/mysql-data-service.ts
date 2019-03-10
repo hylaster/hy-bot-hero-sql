@@ -64,7 +64,7 @@ export class MySqlDataService implements DataService {
       }));
   }
 
-  getRating(userId: Snowflake, server: Snowflake): Promise<number | null> {
+  getRating(userId: Snowflake, server: Snowflake): Promise<number | undefined> {
     const query = 'SELECT rating FROM ?? WHERE userid = ? AND server = ?';
     const params = [this.userTableName, userId, server];
 
@@ -74,7 +74,7 @@ export class MySqlDataService implements DataService {
           reject(err);
         } else {
           const result: number | undefined = results[0];
-          resolve(result != null ? results[0].rating : null);
+          resolve(result != null ? results[0].rating : undefined);
         }
       }));
   }
