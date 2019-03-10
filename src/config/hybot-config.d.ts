@@ -10,7 +10,7 @@ export interface HyBotConfig {
   prefix: string,
 
   /**
-   * The owning user(s) of the bot. These users can be given privilege to use secured bot commands.
+   * The owning user(s) of the bot. These users can be given privilege needed to use secured bot commands.
    */
   owners: Discord.Snowflake[],
 

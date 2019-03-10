@@ -4,11 +4,11 @@ import { Message, RichEmbed } from 'discord.js';
 import { CommandRegistry } from '../command-registry';
 
 export class Help implements Command {
-  constructor(private prefix: string, private commandRegistry: CommandRegistry, private blackList: string[]) {}
+  public constructor(private prefix: string, private commandRegistry: CommandRegistry, private blackList: string[]) {}
 
-  name = 'help';
+  public name = 'help';
 
-  helpInfo: CommandHelpInfo = {
+  public helpInfo: CommandHelpInfo = {
     description: 'Gets a list of commands, or provides info on a specific info command.',
     argSpecs: [
       {
@@ -19,7 +19,7 @@ export class Help implements Command {
     examples: []
   };
 
-  async execute(message: Message, args: string[]) {
+  public async action(message: Message, args: string[]) {
     const channel = message.channel;
 
     if (args.length === 0) {
@@ -52,7 +52,7 @@ export class Help implements Command {
 
     if (info.argSpecs != null && info.argSpecs.length > 0) {
       const nameAndDescStrings = info.argSpecs.map(cas => `*${cas.name}* => ${cas.description}`);
-      embed = embed.addField('Arugments', nameAndDescStrings.join('\n'));
+      embed = embed.addField('Arguments', nameAndDescStrings.join('\n'));
     }
 
     if (info.examples != null && info.examples.length > 0) {

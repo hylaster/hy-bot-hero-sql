@@ -5,9 +5,9 @@ export class Roll implements Command {
 
   constructor(private prefix: string) { }
 
-  name = 'roll';
+  public name = 'roll';
 
-  helpInfo: CommandHelpInfo = {
+  public helpInfo: CommandHelpInfo = {
     description: 'Rolls some number of dice, with an optional +/- modifier.',
     argSpecs: [
       { name: 'dice string', description: 'Specifies the number of dice to roll, the number of faces each has, ' +
@@ -19,8 +19,7 @@ export class Roll implements Command {
     ]
   };
 
-  async execute(message: Message, args: string[]) {
-
+  public async action(message: Message, args: string[]) {
     if (args.length < 1) {
       this.sendInvalidArgsString(message.channel);
       return;
