@@ -29,7 +29,7 @@ export async function tablesExist(pool: Pool, tableNames: string[]): Promise<boo
 export function createUserTable(pool: Pool, tableName: string): Promise<void> {
   const createUserByServer =
     dedent`CREATE TABLE ?? (
-          userid varchar(64),
+          user varchar(64),
           server varchar(64),
           rating smallint
          )`;
@@ -49,11 +49,12 @@ export function createUserTable(pool: Pool, tableName: string): Promise<void> {
 export function createMatchTable(pool: Pool, tableName: string): Promise<void> {
   const createMatchByServer =
     dedent`CREATE TABLE ?? (
-          author varchar(64),
-          opponent varchar(64),
-          record_date DATE,
+          user1 varchar(64),
+          user2 varchar(64),
           server varchar(64),
-          authorWon bit(1)
+          record_date DATE,
+          winner varchar(64),
+          author varchar(64)
          )`;
 
   return new Promise((resolve, reject) => {

@@ -49,14 +49,14 @@ export class Record implements Command {
       return;
     }
 
-    const authorWon = result === Outcome.Win;
+    const winner = result === Outcome.Win ? author : opponent;
     const today = new Date();
     const server = message.guild.id;
 
     const bothEligible = await this.dataService.areUsersEligibleForMatch(author.id, opponent.id, server, today);
     if (bothEligible) {
-      await Promise.all([this.recordMatch(author.id, opponent.id, server, today, authorWon, this.dataService),
-        this.updateRatings(author.id, opponent.id, server, authorWon, this.dataService)]);
+      await Promise.all([this.recordMatch(author.id, opponent.id, server, today, winner.id, author.id,this.dataService),
+        this.updateRatings(author.id, opponent.id, server, winner.id, this.dataService)]);
 
       message.channel.send(`Recording ${message.author.username}'s ${result} ${opponent}`);
     } else {
@@ -67,7 +67,6 @@ export class Record implements Command {
   private getRatingsAfterMatch(authorWon: boolean, authorRating: number, opponentRating: number) {
     const eloResults = EloRating.calculate(authorRating, opponentRating, authorWon);
     let difference = Math.abs(authorRating - eloResults.playerRating);
-    console.log('difference is ' + difference);
     difference *= 2;
 
     const newAuthorRating = authorRating + (authorWon ? difference : -difference);
@@ -77,18 +76,18 @@ export class Record implements Command {
   }
 
   private async updateRatings(authorId: Snowflake, opponentId: Snowflake, server: Snowflake,
-    authorWon: boolean, dataService: DataService) {
+    winner: Snowflake, dataService: DataService) {
 
     const [authorRating, opponentRating] = await Promise.all([getRatingOrDefault(authorId, server, dataService),
       getRatingOrDefault(opponentId, server, dataService)]);
-    const { newAuthorRating, newOpponentRating } = this.getRatingsAfterMatch(authorWon, authorRating, opponentRating);
+    const { newAuthorRating, newOpponentRating } = this.getRatingsAfterMatch(winner === authorId, authorRating, opponentRating);
     await Promise.all([dataService.setRating(authorId, newAuthorRating, server),
       dataService.setRating(opponentId, newOpponentRating, server)]);
   }
 
   private async recordMatch(authorId: Snowflake, opponentId: Snowflake, server: Snowflake, date: Date,
-    authorWon: boolean, dataService: DataService) {
-    return dataService.addMatch(authorId, opponentId, server, date, authorWon);
+    winner: Snowflake, author: Snowflake, dataService: DataService) {
+    return dataService.addMatch(authorId, opponentId, server, date, winner, author);
   }
 
 }

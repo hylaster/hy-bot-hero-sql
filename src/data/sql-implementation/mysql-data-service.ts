@@ -8,9 +8,8 @@ import dedent = require('dedent');
 const getSqlDateString = (date: Date) =>
   `'${date.getUTCFullYear()}-${date.getUTCMonth()}-${date.getUTCDate()}'`;
 
-const sqlOutcomeRepresentation = new Map<boolean, string>([[true, 'winvs'], [false, 'lossvs']]);
-
 export class MySqlDataService implements DataService {
+
   private constructor(private pool: Pool, private userTableName: string, private matchTableName: string) { }
 
   static async createService(pool: Pool, userTableName: string, matchTableName: string,
@@ -40,9 +39,9 @@ export class MySqlDataService implements DataService {
     return new MySqlDataService(pool, userTableName, matchTableName);
   }
 
-  isUserRated(userId: Snowflake, server: Snowflake): Promise<boolean> {
-    const query = 'SELECT rating FROM ?? WHERE userid = ? AND server = ?';
-    const params = [this.userTableName, userId, server];
+  isUserRated(user: Snowflake, server: Snowflake): Promise<boolean> {
+    const query = 'SELECT rating FROM ?? WHERE user = ? AND server = ?';
+    const params = [this.userTableName, user, server];
     return new Promise<boolean>((resolve, reject) =>
       this.pool.query(query, params, (err, results) => {
         if (err) reject(err);
@@ -51,9 +50,9 @@ export class MySqlDataService implements DataService {
     );
   }
 
-  initializeUserRating(userId: Snowflake, server: Snowflake, rating: number): Promise<void> {
+  initializeUserRating(user: Snowflake, server: Snowflake, rating: number): Promise<void> {
     const query = 'INSERT INTO ?? VALUES (?, ?, ?)';
-    const params = [this.userTableName, userId, server, rating];
+    const params = [this.userTableName, user, server, rating];
     return new Promise<void>((resolve, reject) =>
       this.pool.query(query, params, function (err) {
         if (err) {
@@ -64,9 +63,9 @@ export class MySqlDataService implements DataService {
       }));
   }
 
-  getRating(userId: Snowflake, server: Snowflake): Promise<number | undefined> {
-    const query = 'SELECT rating FROM ?? WHERE userid = ? AND server = ?';
-    const params = [this.userTableName, userId, server];
+  getRating(user: Snowflake, server: Snowflake): Promise<number | undefined> {
+    const query = 'SELECT rating FROM ?? WHERE user = ? AND server = ?';
+    const params = [this.userTableName, user, server];
 
     return new Promise<number>((resolve, reject) =>
       this.pool.query(query, params, (err, results) => {
@@ -80,7 +79,7 @@ export class MySqlDataService implements DataService {
   }
 
   getTopNPlayers(server: Snowflake, n: number): Promise<UserRatingPair[]> {
-    const query = 'SELECT userid, rating FROM ?? WHERE server = ? ORDER BY rating DESC LIMIT ??';
+    const query = 'SELECT user, rating FROM ?? WHERE server = ? ORDER BY rating DESC LIMIT ??';
     const params = [this.userTableName, server, n];
 
     return new Promise((resolve, reject) =>
@@ -88,14 +87,17 @@ export class MySqlDataService implements DataService {
         if (err) {
           reject(err);
         } else {
-          const topUsers: UserRatingPair[] = results.map(result => ({ userId: result.userid, rating: result.rating }));
+          const topUsers: UserRatingPair[] = results.map(result => ({ user: result.user, rating: result.rating }));
 
           resolve(topUsers);
         }
       }));
   }
 
-  areUsersEligibleForMatch(user1: Snowflake, user2: Snowflake, server: Snowflake, date: Date): Promise<boolean> {
+  areUsersEligibleForMatch(user: Snowflake, otherUser: Snowflake, server: Snowflake, date: Date): Promise<boolean> {
+
+    const [user1, user2] = this.getUsersAsOrderedPair(user,otherUser);
+
     const isUserEligible = (user1: Snowflake, user2: Snowflake) => {
       const query = 'SELECT * FROM ?? WHERE user1 = ? AND user2 = ? AND record_date = ? AND server = ?';
       const params = [this.matchTableName, user1, user2, getSqlDateString(date), server];
@@ -114,24 +116,27 @@ export class MySqlDataService implements DataService {
     });
   }
 
-  setRating(userId: Snowflake, rating: number, server: Snowflake): Promise<number> {
-    const query = 'UPDATE ?? SET rating = ? WHERE userid = ? AND server = ?';
-    const params = [this.userTableName, rating, userId, server];
+  setRating(user: Snowflake, rating: number, server: Snowflake): Promise<void> {
+    const query = 'UPDATE ?? SET rating = ? WHERE user = ? AND server = ?';
+    const params = [this.userTableName, rating, user, server];
 
-    return new Promise<number>((resolve, reject) =>
-      this.pool.query(query, params, function (err, results) {
+    return new Promise<void>((resolve, reject) =>
+      this.pool.query(query, params, function (err, _results) {
         if (err) {
           reject(err);
         } else {
           console.log('Updated rating');
-          resolve(results);
+          resolve();
         }
       }));
   }
 
-  addMatch(author: Snowflake, opponent: Snowflake, server: Snowflake, date: Date, authorWon: boolean): Promise<void> {
-    const query = 'INSERT INTO ?? VALUES (?, ?, ?, ?, ?)';
-    const params = [this.matchTableName, author, opponent, getSqlDateString(date), server, sqlOutcomeRepresentation.get(authorWon)];
+  addMatch(user: Snowflake, otherUser: Snowflake, server: Snowflake, date: Date, winner: Snowflake, author: Snowflake): Promise<void> {
+
+    const [user1, user2] = this.getUsersAsOrderedPair(user, otherUser);
+
+    const query = 'INSERT INTO ?? VALUES (?, ?, ?, ?, ?, ?)';
+    const params = [this.matchTableName, user1, user2, server, getSqlDateString(date), winner, author];
 
     return new Promise((resolve, reject) =>
       this.pool.query(query, params, function (err) {
@@ -192,6 +197,10 @@ export class MySqlDataService implements DataService {
         }
       }));
   }
+
+  private getUsersAsOrderedPair(user: Snowflake, otherUser: Snowflake): [Snowflake, Snowflake] {
+    return user < otherUser ? [user, otherUser] : [otherUser, user];
+  }
 }
 
-// TODO: add GetOrDefault to data service, consider removing any unused methods
+// TODO: add GetOrDefault to data service, consider removing any unused methods.
