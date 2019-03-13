@@ -1,12 +1,9 @@
-import { DataService, UserRatingPair } from '../data-service';
+import { DataService, UserRatingPair, DatedMatchOutcome } from '../../data-service';
 import { Pool, MysqlError } from 'mysql';
-import { Snowflake, Guild } from 'discord.js';
-import readline from 'readline';
+import { Snowflake } from 'discord.js';
 import { tablesExist, createUserTable, createMatchTable } from './table-management';
 import dedent = require('dedent');
-
-const getSqlDateString = (date: Date) =>
-  `'${date.getUTCFullYear()}-${date.getUTCMonth()}-${date.getUTCDate()}'`;
+import { getUsersAsOrderedPair } from '../../../common';
 
 export class MySqlDataService implements DataService {
 
@@ -14,6 +11,8 @@ export class MySqlDataService implements DataService {
 
   static async createService(pool: Pool, userTableName: string, matchTableName: string,
     createMissingTables: boolean = false): Promise<MySqlDataService> {
+
+    pool.config.timezone = 'UTC+0';
 
     const tableNames: string[] = [userTableName, matchTableName];
     const doesTableExist: boolean[] = await tablesExist(pool, tableNames);
@@ -39,7 +38,7 @@ export class MySqlDataService implements DataService {
     return new MySqlDataService(pool, userTableName, matchTableName);
   }
 
-  isUserRated(user: Snowflake, server: Snowflake): Promise<boolean> {
+  public isUserRated(user: Snowflake, server: Snowflake): Promise<boolean> {
     const query = 'SELECT rating FROM ?? WHERE user = ? AND server = ?';
     const params = [this.userTableName, user, server];
     return new Promise<boolean>((resolve, reject) =>
@@ -50,20 +49,7 @@ export class MySqlDataService implements DataService {
     );
   }
 
-  initializeUserRating(user: Snowflake, server: Snowflake, rating: number): Promise<void> {
-    const query = 'INSERT INTO ?? VALUES (?, ?, ?)';
-    const params = [this.userTableName, user, server, rating];
-    return new Promise<void>((resolve, reject) =>
-      this.pool.query(query, params, function (err) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      }));
-  }
-
-  getRating(user: Snowflake, server: Snowflake): Promise<number | undefined> {
+  public getRating(user: Snowflake, server: Snowflake): Promise<number | undefined> {
     const query = 'SELECT rating FROM ?? WHERE user = ? AND server = ?';
     const params = [this.userTableName, user, server];
 
@@ -78,8 +64,8 @@ export class MySqlDataService implements DataService {
       }));
   }
 
-  getTopNPlayers(server: Snowflake, n: number): Promise<UserRatingPair[]> {
-    const query = 'SELECT user, rating FROM ?? WHERE server = ? ORDER BY rating DESC LIMIT ??';
+  public getTopNPlayers(server: Snowflake, n: number): Promise<UserRatingPair[]> {
+    const query = 'SELECT user, rating FROM ?? WHERE server = ? ORDER BY rating DESC LIMIT ?';
     const params = [this.userTableName, server, n];
 
     return new Promise((resolve, reject) =>
@@ -94,13 +80,13 @@ export class MySqlDataService implements DataService {
       }));
   }
 
-  areUsersEligibleForMatch(user: Snowflake, otherUser: Snowflake, server: Snowflake, date: Date): Promise<boolean> {
+  public areUsersEligibleForMatch(user: Snowflake, otherUser: Snowflake, server: Snowflake, date: Date): Promise<boolean> {
 
-    const [user1, user2] = this.getUsersAsOrderedPair(user,otherUser);
+    const [user1, user2] = getUsersAsOrderedPair(user, otherUser);
 
     const isUserEligible = (user1: Snowflake, user2: Snowflake) => {
-      const query = 'SELECT * FROM ?? WHERE user1 = ? AND user2 = ? AND record_date = ? AND server = ?';
-      const params = [this.matchTableName, user1, user2, getSqlDateString(date), server];
+      const query = 'SELECT * FROM ?? WHERE user1 = ? AND user2 = ? AND DATEDIFF(record_date,?) = 0 AND server = ?';
+      const params = [this.matchTableName, user1, user2, date.toISOString(), server];
 
       return new Promise<boolean>((resolve, reject) =>
         this.pool.query(query, params, (err, results) => {
@@ -116,59 +102,82 @@ export class MySqlDataService implements DataService {
     });
   }
 
-  setRating(user: Snowflake, rating: number, server: Snowflake): Promise<void> {
-    const query = 'UPDATE ?? SET rating = ? WHERE user = ? AND server = ?';
-    const params = [this.userTableName, rating, user, server];
+  public setRating(user: Snowflake, server: Snowflake, rating: number): Promise<void> {
+    const query = dedent`INSERT INTO ?? (user,server,rating) VALUES (?,?,?)
+                         ON DUPLICATE KEY UPDATE rating=VALUES(rating)`;
+    const params = [this.userTableName, user, server, rating];
 
     return new Promise<void>((resolve, reject) =>
       this.pool.query(query, params, function (err, _results) {
         if (err) {
           reject(err);
         } else {
-          console.log('Updated rating');
           resolve();
         }
       }));
   }
 
-  addMatch(user: Snowflake, otherUser: Snowflake, server: Snowflake, date: Date, winner: Snowflake, author: Snowflake): Promise<void> {
+  public addMatch(user: Snowflake, otherUser: Snowflake, server: Snowflake, date: Date, winner: Snowflake, author: Snowflake): Promise<void> {
+    const [user1, user2] = getUsersAsOrderedPair(user, otherUser);
 
-    const [user1, user2] = this.getUsersAsOrderedPair(user, otherUser);
-
-    const query = 'INSERT INTO ?? VALUES (?, ?, ?, ?, ?, ?)';
-    const params = [this.matchTableName, user1, user2, server, getSqlDateString(date), winner, author];
+    const query = dedent`INSERT INTO ?? (user1,user2,server,record_date,winner,author)
+                         VALUES (?, ?, ?, ?, ?, ?)`;
+    const params = [this.matchTableName, user1, user2, server, date.toISOString(), winner, author];
 
     return new Promise((resolve, reject) =>
       this.pool.query(query, params, function (err) {
         if (err) {
           reject(err);
         } else {
-          console.log('match results recorded');
           resolve();
         }
       }));
   }
 
-  deleteAllDataForServer(server: Guild) {
-    const snowflake = server.id;
+  public getMatchHistory(user: string, otherUser: string, server: string): Promise<DatedMatchOutcome[]> {
 
-    const io = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout
-    });
+    const [user1, user2] = getUsersAsOrderedPair(user, otherUser);
 
-    io.question(`Really delete ALL data for server ${server.name}? (y/n)`, resp => {
-      if (resp.toLowerCase() === 'y') {
-        console.log(`Deleting all data for server ${snowflake}`);
-        const deleteAll = Promise.all([this.deleteAllMatchesForServer(snowflake), this.deleteAllUsersForServer(snowflake)]);
-        deleteAll.then(() => {
-          console.log('Data deleted successfully.');
-        }).catch(console.error);
-      }
-    });
+    const query = dedent`SELECT * FROM ?? WHERE user1 = ? AND user2 = ? AND server = ?
+                         ORDER BY record_date ASC `;
+    const params = [this.matchTableName, user1, user2, server, server];
+
+    return new Promise((resolve, reject) =>
+      this.pool.query(query, params, function (err, results) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(results.map((result: any) => {
+            const matchOutcome: DatedMatchOutcome = {
+              date: new Date(result.record_date),
+              winner: result.winner,
+              author: result.author
+            };
+
+            return matchOutcome;
+          }));
+        }
+      }));
   }
 
-  private deleteAllMatchesForServer(server: Snowflake): Promise<void> {
+  public async deleteAllData(): Promise<void> {
+    const tables = [this.userTableName, this.matchTableName];
+
+    await Promise.all(tables.map((table: string) => {
+      const query = `DELETE FROM ${table}`;
+      return new Promise((resolve, reject) => {
+        this.pool.query(query, (err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
+    }));
+  }
+
+  public deleteAllMatchesForServer(server: Snowflake): Promise<void> {
     const query = 'DELETE FROM ?? WHERE server = ?';
     const params = [this.matchTableName, server];
 
@@ -183,7 +192,7 @@ export class MySqlDataService implements DataService {
       }));
   }
 
-  private deleteAllUsersForServer(server: Snowflake): Promise<void> {
+  public deleteAllUsersForServer(server: Snowflake): Promise<void> {
     const query = 'DELETE FROM ?? WHERE server = ?';
     const params = [this.userTableName, server];
 
@@ -196,10 +205,6 @@ export class MySqlDataService implements DataService {
           resolve();
         }
       }));
-  }
-
-  private getUsersAsOrderedPair(user: Snowflake, otherUser: Snowflake): [Snowflake, Snowflake] {
-    return user < otherUser ? [user, otherUser] : [otherUser, user];
   }
 }
 

@@ -2,7 +2,7 @@ import { Command, CommandHelpInfo } from '../command';
 import EloRating from 'elo-rating';
 import { Snowflake, Message } from 'discord.js';
 import { DataService } from 'src/data/data-service';
-import { getRatingOrDefault } from '../shared/get-rating-or-default';
+import { getRatingOrDefault } from '../common/get-rating-or-default';
 
 enum Outcome {
   Win = 'winvs',
@@ -10,7 +10,7 @@ enum Outcome {
 }
 
 export class Record implements Command {
-  public constructor(private prefix: string, private dataService: DataService) {}
+  public constructor(private prefix: string, private dataService: DataService) { }
 
   public name = 'record';
 
@@ -55,7 +55,7 @@ export class Record implements Command {
 
     const bothEligible = await this.dataService.areUsersEligibleForMatch(author.id, opponent.id, server, today);
     if (bothEligible) {
-      await Promise.all([this.recordMatch(author.id, opponent.id, server, today, winner.id, author.id,this.dataService),
+      await Promise.all([this.recordMatch(author.id, opponent.id, server, today, winner.id, author.id, this.dataService),
         this.updateRatings(author.id, opponent.id, server, winner.id, this.dataService)]);
 
       message.channel.send(`Recording ${message.author.username}'s ${result} ${opponent}`);
@@ -64,25 +64,27 @@ export class Record implements Command {
     }
   }
 
-  private getRatingsAfterMatch(authorWon: boolean, authorRating: number, opponentRating: number) {
-    const eloResults = EloRating.calculate(authorRating, opponentRating, authorWon);
-    let difference = Math.abs(authorRating - eloResults.playerRating);
-    difference *= 2;
-
-    const newAuthorRating = authorRating + (authorWon ? difference : -difference);
-    const newOpponentRating = authorRating + (!authorWon ? difference : -difference);
-
-    return { newAuthorRating, newOpponentRating };
+  private getRatingsAfterMatch(winnersRating: number, losersRating: number) {
+    const eloResults = EloRating.calculate(winnersRating, losersRating, true);
+    return {
+      winnersNewRating: eloResults.playerRating,
+      losersNewRating: eloResults.opponentRating
+    };
   }
 
-  private async updateRatings(authorId: Snowflake, opponentId: Snowflake, server: Snowflake,
+  private async updateRatings(author: Snowflake, opponent: Snowflake, server: Snowflake,
     winner: Snowflake, dataService: DataService) {
 
-    const [authorRating, opponentRating] = await Promise.all([getRatingOrDefault(authorId, server, dataService),
-      getRatingOrDefault(opponentId, server, dataService)]);
-    const { newAuthorRating, newOpponentRating } = this.getRatingsAfterMatch(winner === authorId, authorRating, opponentRating);
-    await Promise.all([dataService.setRating(authorId, newAuthorRating, server),
-      dataService.setRating(opponentId, newOpponentRating, server)]);
+    const [authorRating, opponentRating] = await Promise.all([getRatingOrDefault(author, server, dataService),
+      getRatingOrDefault(opponent, server, dataService)]);
+
+    const { winnersNewRating: newAuthorRating,
+      losersNewRating: newOpponentRating } = winner === author
+        ? this.getRatingsAfterMatch(authorRating, opponentRating)
+        : this.getRatingsAfterMatch(opponentRating, authorRating);
+
+    await Promise.all([dataService.setRating(author, server, newAuthorRating),
+      dataService.setRating(opponent, server, newOpponentRating)]);
   }
 
   private async recordMatch(authorId: Snowflake, opponentId: Snowflake, server: Snowflake, date: Date,

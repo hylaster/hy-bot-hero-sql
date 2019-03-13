@@ -31,7 +31,8 @@ export function createUserTable(pool: Pool, tableName: string): Promise<void> {
     dedent`CREATE TABLE ?? (
           user varchar(64),
           server varchar(64),
-          rating smallint
+          rating smallint,
+          UNIQUE(user,server)
          )`;
 
   return new Promise((resolve, reject) => {
@@ -52,7 +53,7 @@ export function createMatchTable(pool: Pool, tableName: string): Promise<void> {
           user1 varchar(64),
           user2 varchar(64),
           server varchar(64),
-          record_date DATE,
+          record_date datetime,
           winner varchar(64),
           author varchar(64)
          )`;

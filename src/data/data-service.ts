@@ -13,12 +13,12 @@ export interface DataService {
 
   getRating(user: Snowflake, server: Snowflake): Promise<number | undefined>;
 
-  setRating(user: Snowflake, rating: number, server: Snowflake): Promise<void>;
+  setRating(user: Snowflake, server: Snowflake, rating: number): Promise<void>;
 
-  areUsersEligibleForMatch(user1: Snowflake, user2: Snowflake, server: Snowflake,
+  areUsersEligibleForMatch(user: Snowflake, otherUser: Snowflake, server: Snowflake,
     date: Date): Promise<boolean>;
 
-  addMatch(user1: Snowflake, user2: Snowflake, server: Snowflake, date: Date, winner: Snowflake,
+  addMatch(user: Snowflake, otherUser: Snowflake, server: Snowflake, date: Date, winner: Snowflake,
     author: Snowflake): Promise<void>;
 
   getMatchHistory(user1: Snowflake, user2: Snowflake, server: Snowflake): Promise<DatedMatchOutcome[]>;
