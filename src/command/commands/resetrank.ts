@@ -28,14 +28,15 @@ export class ResetRank implements Command {
     if (!member) {
       message.channel.send('Please tag a user.');
     } else {
-      const userId = member.id;
+      const user = member.id;
       const server = message.guild.id;
 
-      const userIsRated = await this.dataService.isUserRated(userId, server);
+      const userIsRated = await this.dataService.isUserRated(user, server);
+      const newUserRating = 1000;
 
       if (userIsRated) {
-        this.dataService.setRating(userId, 1000, server).then((newRanking: number) => {
-          message.channel.send(`Ranking reset to ${newRanking}`);
+        this.dataService.setRating(user, newUserRating, server).then(() => {
+          message.channel.send(`Ranking reset to ${newUserRating}`);
         });
       } else {
         message.channel.send('User is not rated.');
