@@ -1,5 +1,5 @@
 import http from 'http';
-import { MySqlDataService } from './data/sql-implementation/mysql-data-service';
+import { MySqlDataService } from './data/sql/mysql-implementation/mysql-data-service';
 import { HyBot } from './hybot';
 import { HyBotMySqlConfig } from './config/hybot-mysql-config';
 import mysql from 'mysql';
@@ -14,7 +14,11 @@ const read = require('read');
 const config: HyBotMySqlConfig = require('../config.json');
 
 async function start() {
-  const { user, password } = await getCredentials();
+  const { user, password } = getCredentials();
+
+  if (user == null || password == null) {
+    throw Error('Database user and/or password environment variables are missing.');
+  }
 
   const pool = mysql.createPool({
     connectionLimit: 10,
@@ -31,14 +35,11 @@ async function start() {
   startBot(config, dataService);
 }
 
-function getCredentials(): Promise<{ user: string, password: string }> {
-  return new Promise((resolve, _reject) => {
-    read({ prompt: 'Database user: ' }, (_error: string, user: string) => {
-      read({ prompt: 'Password: ', silent: true }, (_error: string, password: string) => {
-        resolve({ user, password });
-      });
-    });
-  });
+function getCredentials(): { user?: string, password?: string } {
+  const user = process.env.DATABASE_USER;
+  const password = process.env.DATABASE_PASSWORD;
+
+  return { user, password };
 }
 
 async function startBot(config: HyBotConfig, dataService: DataService) {
