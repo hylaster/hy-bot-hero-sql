@@ -1,5 +1,5 @@
 import { Command, CommandHelpInfo } from '../command';
-import { getRatingOrDefault } from '../shared/get-rating-or-default';
+import { getRatingOrDefault } from '../common/get-rating-or-default';
 import { Message } from 'discord.js';
 import { DataService } from 'src/data/data-service';
 
