@@ -22,8 +22,8 @@ export class GetTop implements Command {
     const rankTwo: UserRatingPair | undefined = topUsers[1];
 
     if (rankOne && rankTwo) {
-      message.channel.send(`Top rating is ${this.client.users.get(rankOne.userId)} at ${rankOne.rating}
-                2nd place is ${this.client.users.get(rankTwo.userId)} at ${rankTwo.rating}`);
+      message.channel.send(`Top rating is ${this.client.users.get(rankOne.user)} at ${rankOne.rating}
+                2nd place is ${this.client.users.get(rankTwo.user)} at ${rankTwo.rating}`);
     } else {
       message.channel.send('There are less than two users ranked..');
     }
