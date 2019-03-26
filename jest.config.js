@@ -4,4 +4,9 @@ module.exports = {
   roots: [
     './test',
   ],
+  globals: {
+    'ts-jest': {
+      astTransformers: ['ts-nameof'],
+    },
+  },
 };
