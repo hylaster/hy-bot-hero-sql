@@ -35,7 +35,7 @@ export class ResetRank implements Command {
       const newUserRating = 1000;
 
       if (userIsRated) {
-        this.dataService.setRating(user, newUserRating, server).then(() => {
+        this.dataService.setRating(user, server, newUserRating).then(() => {
           message.channel.send(`Ranking reset to ${newUserRating}`);
         });
       } else {
