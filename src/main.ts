@@ -7,7 +7,6 @@ import { HyBotConfig } from './config/hybot-config';
 import { DataService } from './data/data-service';
 import { GetRating, GetTop, Ping, Record, Roll, Timer } from './command/commands';
 import { Help } from './command/commands/help';
-const read = require('read');
 
 // Spins up an implementation of Hybot.
 
