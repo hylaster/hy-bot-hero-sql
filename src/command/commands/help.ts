@@ -3,6 +3,9 @@ import dedent = require('dedent');
 import { Message, RichEmbed } from 'discord.js';
 import { CommandRegistry } from '../command-registry';
 
+/**
+ * A command that explains what other commands do and how to use them.
+ */
 export class Help implements Command {
   public constructor(private prefix: string, private commandRegistry: CommandRegistry, private blackList: string[]) {}
 
@@ -43,6 +46,11 @@ export class Help implements Command {
     }
   }
 
+  /**
+   * Builds a pretty-looking embed that contains the help information.
+   * @param name The name of the command.
+   * @param info The command's help information.
+   */
   private buildHelpEmbed(name: string, info: CommandHelpInfo): RichEmbed {
 
     let embed = new RichEmbed()
