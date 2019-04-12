@@ -91,7 +91,7 @@ export class MySqlDataService implements DataService {
       return new Promise<boolean>((resolve, reject) =>
         this.pool.query(query, params, (err, results) => {
           if (err) reject(err);
-          resolve(!results[0]);
+          resolve(results[0] == null);
         }));
     };
 
