@@ -18,8 +18,7 @@ class ServerInformation {
 
 export class InMemoryDataService implements DataService {
 
-  private serverInfo: Map<ServerSnowFlake, ServerInformation> = new Map();
-
+  /** @inheritdoc */
   public isUserRated(user: UserSnowFlake, server: ServerSnowFlake): Promise<boolean> {
     const userRating = this.getUserRating(user, server);
 
@@ -27,11 +26,13 @@ export class InMemoryDataService implements DataService {
     else return Promise.resolve(true);
   }
 
+  /** @inheritdoc */
   public getRating(user: UserSnowFlake, server: ServerSnowFlake): Promise<number | undefined> {
     const userRating = this.getUserRating(user, server);
     return Promise.resolve(userRating);
   }
 
+  /** @inheritdoc */
   public setRating(user: UserSnowFlake, server: ServerSnowFlake, rating: number): Promise<void> {
     const serverInfo = this.getServerInformation(server);
 
@@ -60,6 +61,7 @@ export class InMemoryDataService implements DataService {
     return Promise.resolve();
   }
 
+  /** @inheritdoc */
   public areUsersEligibleForMatch(user: UserSnowFlake, otherUser: UserSnowFlake,
     server: ServerSnowFlake, date: Date): Promise<boolean> {
 
@@ -68,6 +70,7 @@ export class InMemoryDataService implements DataService {
     return Promise.resolve(!serverInfo.matchHistory.usersHadMatchOnDate(user, otherUser, date));
   }
 
+  /** @inheritdoc */
   public addMatch(user: string, otherUser: string, server: string, date: Date,
     winner: string, author: string): Promise<void> {
 
@@ -76,10 +79,12 @@ export class InMemoryDataService implements DataService {
     return Promise.resolve(serverInfo.matchHistory.recordMatch(user, otherUser, date, winner, author));
   }
 
+  /** @inheritdoc */
   public getMatchHistory(user1: string, user2: string, server: string): Promise<DatedMatchOutcome[]> {
     return Promise.resolve(this.getServerInformation(server).matchHistory.getMatchHistory(user1, user2));
   }
 
+  /** @inheritdoc */
   public getTopNPlayers(server: ServerSnowFlake, n: number): Promise<UserRatingPair[]> {
     const serverInfo = this.getServerInformation(server);
 
@@ -125,4 +130,6 @@ export class InMemoryDataService implements DataService {
 
     return serverInformation;
   }
+
+  private serverInfo: Map<ServerSnowFlake, ServerInformation> = new Map();
 }
