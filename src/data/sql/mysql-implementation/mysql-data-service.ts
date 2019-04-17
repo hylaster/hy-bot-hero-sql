@@ -9,7 +9,16 @@ export class MySqlDataService implements DataService {
 
   private constructor(private pool: Pool, private userTableName: string, private matchTableName: string) { }
 
-  static async createService(pool: Pool, userTableName: string, matchTableName: string,
+  /**
+   * Creates service.
+   * @param pool The my-sql pool to use to communicate with the database.
+   * @param userTableName The name of the table of users to read/write to.
+   * @param matchTableName The name of the table of match records to read/write to.
+   * @param [createMissingTables] Whether to create the user and/or match tables if
+   *   they do not already exist or to throw an error instead.
+   * @returns The data instance service.
+   */
+  public static async createService(pool: Pool, userTableName: string, matchTableName: string,
     createMissingTables: boolean = false): Promise<MySqlDataService> {
 
     pool.config.timezone = 'UTC+0';
@@ -38,6 +47,7 @@ export class MySqlDataService implements DataService {
     return new MySqlDataService(pool, userTableName, matchTableName);
   }
 
+  /** @inheritdoc */
   public isUserRated(user: Snowflake, server: Snowflake): Promise<boolean> {
     const query = 'SELECT rating FROM ?? WHERE user = ? AND server = ?';
     const params = [this.userTableName, user, server];
@@ -49,6 +59,7 @@ export class MySqlDataService implements DataService {
     );
   }
 
+  /** @inheritdoc */
   public getRating(user: Snowflake, server: Snowflake): Promise<number | undefined> {
     const query = 'SELECT rating FROM ?? WHERE user = ? AND server = ?';
     const params = [this.userTableName, user, server];
@@ -64,6 +75,7 @@ export class MySqlDataService implements DataService {
       }));
   }
 
+  /** @inheritdoc */
   public getTopNPlayers(server: Snowflake, n: number): Promise<UserRatingPair[]> {
     const query = 'SELECT user, rating FROM ?? WHERE server = ? ORDER BY rating DESC LIMIT ?';
     const params = [this.userTableName, server, n];
@@ -80,8 +92,8 @@ export class MySqlDataService implements DataService {
       }));
   }
 
+  /** @inheritdoc */
   public areUsersEligibleForMatch(user: Snowflake, otherUser: Snowflake, server: Snowflake, date: Date): Promise<boolean> {
-
     const [user1, user2] = getUsersAsOrderedPair(user, otherUser);
 
     const isUserEligible = (user1: Snowflake, user2: Snowflake) => {
@@ -102,6 +114,7 @@ export class MySqlDataService implements DataService {
     });
   }
 
+  /** @inheritdoc */
   public setRating(user: Snowflake, server: Snowflake, rating: number): Promise<void> {
     const query = dedent`INSERT INTO ?? (user,server,rating) VALUES (?,?,?)
                          ON DUPLICATE KEY UPDATE rating=VALUES(rating)`;
@@ -117,12 +130,14 @@ export class MySqlDataService implements DataService {
       }));
   }
 
+  /** @inheritdoc */
   public addMatch(user: Snowflake, otherUser: Snowflake, server: Snowflake, date: Date, winner: Snowflake, author: Snowflake): Promise<void> {
     const [user1, user2] = getUsersAsOrderedPair(user, otherUser);
+    const formattedDate = this.dateToMySqlDate(date);
 
     const query = dedent`INSERT INTO ?? (user1,user2,server,record_date,winner,author)
                          VALUES (?, ?, ?, ?, ?, ?)`;
-    const params = [this.matchTableName, user1, user2, server, date.toISOString(), winner, author];
+    const params = [this.matchTableName, user1, user2, server, formattedDate, winner, author];
 
     return new Promise((resolve, reject) =>
       this.pool.query(query, params, function (err) {
@@ -134,6 +149,7 @@ export class MySqlDataService implements DataService {
       }));
   }
 
+  /** @inheritdoc */
   public getMatchHistory(user: string, otherUser: string, server: string): Promise<DatedMatchOutcome[]> {
 
     const [user1, user2] = getUsersAsOrderedPair(user, otherUser);
@@ -160,6 +176,10 @@ export class MySqlDataService implements DataService {
       }));
   }
 
+  /**
+   * Deletes all user and match data.
+   * @returns Promise that is resolved when the operation is complete.
+   */
   public async deleteAllData(): Promise<void> {
     const tables = [this.userTableName, this.matchTableName];
 
@@ -177,6 +197,10 @@ export class MySqlDataService implements DataService {
     }));
   }
 
+  /**
+   * Deletes all matches data for the specified server.
+   * @param server The snowflake of the server that will have its match data deleted.
+   */
   public deleteAllMatchesForServer(server: Snowflake): Promise<void> {
     const query = 'DELETE FROM ?? WHERE server = ?';
     const params = [this.matchTableName, server];
@@ -192,6 +216,10 @@ export class MySqlDataService implements DataService {
       }));
   }
 
+  /**
+   * Deletes all user data for a specified server.
+   * @param server The snowflake of the server that will have its user data deleted.
+   */
   public deleteAllUsersForServer(server: Snowflake): Promise<void> {
     const query = 'DELETE FROM ?? WHERE server = ?';
     const params = [this.userTableName, server];
@@ -205,6 +233,16 @@ export class MySqlDataService implements DataService {
           resolve();
         }
       }));
+  }
+
+  /**
+   * Converts a JS Date object to a string representation compatible
+   * with the MySQL datetime format.
+   * @param date The date.
+   * @returns A string representation of the date, formatted correctly for MySQL.
+   */
+  private dateToMySqlDate(date: Date) {
+    return date.toISOString().slice(0, 19).replace('T', ' ');
   }
 }
 
