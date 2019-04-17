@@ -1,3 +1,7 @@
+/**
+ * Typings for the 'elo-rating' NPM module.
+ */
+
 type EloCalculation = { playerRating: number, opponentRating: number };
 
 declare module 'elo-rating' {
