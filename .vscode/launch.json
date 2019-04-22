@@ -2,6 +2,14 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "type": "node",
+      "request": "attach",
+      "name": "Docker: Attach to Node",
+      "port": 9229,
+      "remoteRoot": "/usr/src/app",
+      "protocol": "inspector"
+    },
+    {
           "name": "Current TS File",
           "type": "node",
           "request": "launch",
@@ -21,7 +29,7 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Debug Jest Tests",
+      "name": "Debug Jest Tests: Local Machine",
       "cwd": "${workspaceFolder}",
       "args": [
         "--inspect-brk",
