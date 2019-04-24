@@ -93,28 +93,6 @@ export class MySqlDataService implements DataService {
   }
 
   /** @inheritdoc */
-  public areUsersEligibleForMatch(user: Snowflake, otherUser: Snowflake, server: Snowflake, date: Date): Promise<boolean> {
-    const [user1, user2] = getUsersAsOrderedPair(user, otherUser);
-
-    const isUserEligible = (user1: Snowflake, user2: Snowflake) => {
-      const query = 'SELECT * FROM ?? WHERE user1 = ? AND user2 = ? AND DATEDIFF(record_date,?) = 0 AND server = ?';
-      const params = [this.matchTableName, user1, user2, date.toISOString(), server];
-
-      return new Promise<boolean>((resolve, reject) =>
-        this.pool.query(query, params, (err, results) => {
-          if (err) reject(err);
-          resolve(results[0] == null);
-        }));
-    };
-
-    return new Promise<boolean>((resolve) => {
-      Promise.all([isUserEligible(user1, user2), isUserEligible(user2, user1)]).then(([result1, result2]) => {
-        resolve(result1 && result2);
-      });
-    });
-  }
-
-  /** @inheritdoc */
   public setRating(user: Snowflake, server: Snowflake, rating: number): Promise<void> {
     const query = dedent`INSERT INTO ?? (user,server,rating) VALUES (?,?,?)
                          ON DUPLICATE KEY UPDATE rating=VALUES(rating)`;
@@ -150,13 +128,25 @@ export class MySqlDataService implements DataService {
   }
 
   /** @inheritdoc */
-  public getMatchHistory(user: string, otherUser: string, server: string): Promise<DatedMatchOutcome[]> {
+  public getMatchHistory(user: string, otherUser: string, server: string, startDate?: Date, endDate?: Date): Promise<DatedMatchOutcome[]> {
 
     const [user1, user2] = getUsersAsOrderedPair(user, otherUser);
 
-    const query = dedent`SELECT * FROM ?? WHERE user1 = ? AND user2 = ? AND server = ?
-                         ORDER BY record_date ASC `;
-    const params = [this.matchTableName, user1, user2, server, server];
+    const params: any[] = [];
+
+    let query = 'SELECT * FROM ?? WHERE user1 = ? AND user2 = ? AND server = ? ';
+    if (startDate != null) {
+      query = query + 'AND record_date >= ? ';
+      params.push(this.dateToMySqlDate(startDate));
+    }
+    if (endDate != null) {
+      query = query + 'AND record_date <= ? ';
+      params.push(this.dateToMySqlDate(endDate));
+    }
+
+    query = query + 'ORDER BY record_date ASC ';
+
+    params.unshift(this.matchTableName, user1, user2, server);
 
     return new Promise((resolve, reject) =>
       this.pool.query(query, params, function (err, results) {
@@ -242,7 +232,10 @@ export class MySqlDataService implements DataService {
    * @returns A string representation of the date, formatted correctly for MySQL.
    */
   private dateToMySqlDate(date: Date) {
-    return date.toISOString().slice(0, 19).replace('T', ' ');
+    const isoString = date.toISOString();
+    let formattedString = isoString.slice(0, 23);
+    formattedString = formattedString.replace('T', ' ');
+    return formattedString;
   }
 }
 
