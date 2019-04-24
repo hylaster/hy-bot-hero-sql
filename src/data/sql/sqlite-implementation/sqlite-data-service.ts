@@ -25,18 +25,33 @@ export class SqliteDataService implements DataService {
     if (!this.tableExists(matchTableName)) this.createMatchTable();
   }
 
+  /**
+   * Creates a service that reads/writes data from/to a database file. Data is persistent.
+   * @param filepath The path to the database file.
+   * @param userTableName The name of the user table.
+   * @param matchTableName The name of the match table.
+   * @returns A data service instance.
+   */
   public static createPersistentService(filepath: string, userTableName: string, matchTableName: string): SqliteDataService {
     return new SqliteDataService(filepath, userTableName, matchTableName, false);
   }
 
-  public static createInMemoryService(userTableName: string, matchTableName: string): SqliteDataService {
-    return new SqliteDataService(undefined, userTableName, matchTableName, true);
+  /**
+   * Creates a service that reads/writes data from memory. Data is not persistent and lost when the process terminates.
+   * @returns A data service instance.
+   */
+  public static createInMemoryService(): SqliteDataService {
+    return new SqliteDataService(undefined, 'users', 'matches', true);
   }
 
+  /**
+   * Closes the database connection.
+   */
   public close() {
     this.db.close();
   }
 
+  /** @inheritdoc */
   public isUserRated(user: string, server: string): Promise<boolean> {
     const query = `SELECT * FROM ${this.userTableName} WHERE user = ? AND server = ?`;
 
@@ -46,6 +61,7 @@ export class SqliteDataService implements DataService {
     return Promise.resolve(result != null);
   }
 
+  /** @inheritdoc */
   public getRating(user: string, server: string): Promise<number | undefined> {
     const query = `SELECT * FROM ${this.userTableName} WHERE user = ? AND server = ?`;
 
@@ -55,6 +71,7 @@ export class SqliteDataService implements DataService {
     return result == null ? Promise.resolve(undefined) : Promise.resolve(result.rating);
   }
 
+  /** @inheritdoc */
   public setRating(user: string, server: string, rating: number): Promise<void> {
     const query = dedent`INSERT INTO ${this.userTableName}(user,server,rating) VALUES (?, ?, ?)`;
 
@@ -64,19 +81,7 @@ export class SqliteDataService implements DataService {
     return Promise.resolve();
   }
 
-  public areUsersEligibleForMatch(user: string, otherUser: string, server: string, date: Date): Promise<boolean> {
-    const [user1, user2] = getUsersAsOrderedPair(user, otherUser);
-
-    const query = dedent`SELECT user1,user2,server,date FROM ${this.matchTableName}
-                         WHERE user1 = ? AND user2 = ? AND server = ? AND
-                         julianday(date)=julianDay(?)`;
-
-    const statement = this.db.prepare(query);
-    const result = statement.get(user1, user2, server, date.toISOString());
-
-    return Promise.resolve(result == null);
-  }
-
+  /** @inheritdoc */
   public addMatch(user: string, otherUser: string, server: string, date: Date, winner: string, author: string): Promise<void> {
     const [user1, user2] = getUsersAsOrderedPair(user, otherUser);
 
@@ -87,14 +92,28 @@ export class SqliteDataService implements DataService {
     return Promise.resolve();
   }
 
-  public getMatchHistory(user: string, otherUser: string, server: string): Promise<DatedMatchOutcome[]> {
+  /** @inheritdoc */
+  public getMatchHistory(user: string, otherUser: string, server: string, startDate?: Date, endDate?: Date): Promise<DatedMatchOutcome[]> {
     const [user1, user2] = getUsersAsOrderedPair(user, otherUser);
 
-    const query = dedent`SELECT date, winner, author FROM ${this.matchTableName}
-                         WHERE user1 = ? AND user2 = ? AND server = ?
-                         ORDER BY date ASC`;
+    const params: any[] = [];
+
+    let query = `SELECT date, winner, author FROM ${this.matchTableName} WHERE user1 = ? AND user2 = ? AND server = ? `;
+
+    if (startDate != null) {
+      query = query + 'AND date >= ? ';
+      params.push(startDate.toISOString());
+    }
+    if (endDate != null) {
+      query = query + 'AND date <= ? ';
+      params.push(endDate.toISOString());
+    }
+
+    query = query + 'ORDER BY date ASC';
+    params.unshift(user1, user2, server);
+
     const statement = this.db.prepare(query);
-    const results = statement.all(user1, user2, server);
+    const results = statement.all(...params);
 
     return Promise.resolve(results.map((result: any) => {
       return {
@@ -105,6 +124,7 @@ export class SqliteDataService implements DataService {
     }));
   }
 
+  /** @inheritdoc */
   public getTopNPlayers(server: string, n: number): Promise<UserRatingPair[]> {
     const query = `SELECT user, rating FROM ${this.userTableName} WHERE server = ? ORDER BY rating DESC LIMIT ?`;
     const statement = this.db.prepare(query);
@@ -113,6 +133,9 @@ export class SqliteDataService implements DataService {
     return Promise.resolve(results);
   }
 
+  /**
+   * Deletes all data.
+   */
   public deleteAllData() {
     const tables = [this.userTableName, this.matchTableName];
 
@@ -123,6 +146,11 @@ export class SqliteDataService implements DataService {
     });
   }
 
+  /**
+   * Determines whether the table with the given name exists.
+   * @param tableName The name of the table to look for.
+   * @returns `true` if the table exists, `false` otherwise.
+   */
   private tableExists(tableName: string) {
     tableName = sanitizeTableName(tableName);
 
@@ -132,6 +160,9 @@ export class SqliteDataService implements DataService {
     return resp != null;
   }
 
+  /**
+   * Creates the user table.
+   */
   private createUserTable() {
     const tableQuery =
       dedent`CREATE TABLE ${this.userTableName} (
@@ -151,6 +182,9 @@ export class SqliteDataService implements DataService {
     indexStatement.run();
   }
 
+  /**
+   * Creates the match table.
+   */
   private createMatchTable() {
     const tableQuery = dedent`CREATE TABLE ${this.matchTableName} (
                         user1 varchar(64),
