@@ -1,15 +1,15 @@
 import http from 'http';
-import { MySqlDataService } from './data/sql/mysql-implementation/mysql-data-service';
-import { HyBot } from './hybot';
+import { MySqlDataService } from '../src/data/sql/mysql-implementation/mysql-data-service';
+import { HyBot } from '../src/hybot';
 import mysql from 'mysql';
-import { HyBotConfig } from './config/hybot-config';
-import { DataService } from './data/data-service';
-import { GetRating, GetTop, Ping, Record, Roll, Timer } from './command/commands';
-import { Help } from './command/commands/help';
+import { HyBotConfig } from '../src/config/hybot-config';
+import { DataService } from '../src/data/data-service';
+import { GetRating, GetTop, Ping, Record, Roll, Timer } from '../src/command/commands';
+import { Help } from '../src/command/commands/help';
 
 // Spins up an implementation of Hybot.
 
-import { config } from '../hy-bot-config';
+import { config } from './hy-bot-config';
 
 async function start() {
 
