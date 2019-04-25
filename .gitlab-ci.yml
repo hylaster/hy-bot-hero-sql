@@ -7,9 +7,9 @@ stages:
 test:
   stage: test
   services:
-    - npm
+    - node:latest
   script:
-    - docker-compose -f "docker-compose-test.yml" up --force-recreate --abort-on-container-exit --exit-code-from hybot
+    - npm test:docker
 
 deploy:
   image: ruby:latest
