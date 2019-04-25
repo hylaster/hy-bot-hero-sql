@@ -9,7 +9,7 @@ test:
   services:
     - node:latest
   script:
-    - npm test:docker
+    - npm run test:docker
 
 deploy:
   image: ruby:latest
