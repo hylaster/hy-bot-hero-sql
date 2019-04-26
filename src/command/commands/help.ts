@@ -26,9 +26,10 @@ export class Help implements Command {
     const channel = message.channel;
 
     if (args.length === 0) {
-      const names = this.commandRegistry.getCommandNames().filter(name => !this.blackList.includes(name));
-      channel.send(dedent`Available commands: ' ${names.join(', ')}.
-                          Type *${this.prefix + this.name}* and the name of any command to see how to use it.`);
+      const names = this.commandRegistry.getCommandNames().filter(name => !this.blackList.includes(name))
+                                                          .map(name => `\`${name}\``);
+      channel.send(dedent`Available commands: ${names.join(', ')}.
+                          Type \`${this.prefix + this.name}\` followed by the name of any command to see how to use it.`);
     } else {
       const nameOfCommandInQuestion = args[0];
       const command = this.commandRegistry.getCommands().find(c => c.name === nameOfCommandInQuestion);
@@ -54,9 +55,11 @@ export class Help implements Command {
   private buildHelpEmbed(name: string, info: CommandHelpInfo): RichEmbed {
 
     let embed = new RichEmbed()
-      .setTitle(name)
+      .setTitle(`Command Description for: ${name}`)
       .setDescription(info.description)
-      .setColor(0x00AE86);
+      .setColor(0x330093);
+
+    embed.addField('Format', this.prefix + [name].concat(info.argSpecs.map(cas => `*${cas.name}*`)).join(' '));
 
     if (info.argSpecs != null && info.argSpecs.length > 0) {
       const nameAndDescStrings = info.argSpecs.map(cas => `*${cas.name}* => ${cas.description}`);
