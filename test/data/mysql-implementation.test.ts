@@ -1,33 +1,42 @@
 import { DataServiceTester } from './data-service-tester';
 
 import mysql from 'mysql';
-import { MySqlDataService } from '../../src/data/sql/mysql-implementation/mysql-data-service';
+import { MySqlEloDataService } from '../../src/data/sql/mysql-implementation/mysql-elo-data-service';
 
-describe(nameof(MySqlDataService), () => {
+describe(nameof(MySqlEloDataService), () => {
 
-  let service: MySqlDataService;
-
+  let service: MySqlEloDataService;
+  let pool: mysql.Pool;
   beforeAll(async () => {
-    const pool = mysql.createPool({
+
+    console.log('USER', process.env['DATABASE_USER']);
+
+    pool = mysql.createPool({
       connectionLimit: 10,
       connectTimeout: 60 * 60 * 1000,
       timeout: 60 * 60 * 1000,
-      host: 'hybot-test.cbce7r2dyrtw.us-east-1.rds.amazonaws.com',
+      host: 'hybot.cbce7r2dyrtw.us-east-1.rds.amazonaws.com',
       port: 3306,
-      database: 'hybottest',
-      user: 'testroot',
-      password: 'supertesterdude',
+      database: 'hybot',
+      user: 'root',
+      password: 'bnG3y_towo',
       timezone: 'UTC+0'
     });
 
-    service = await MySqlDataService.createService(pool, 'testusers', 'testmatches', true);
+    service = await MySqlEloDataService.createService(pool, 'testusers', 'testmatches', true);
   });
 
-  const tester = new DataServiceTester(
-    () => service,
-    (ds: MySqlDataService) => {
-      ds.deleteAllData();
-    });
+  afterEach(async () => {
+    await service.deleteAllData();
+  })
+
+  afterAll(() => {
+    pool.end();
+  });
+
+  const tester = new DataServiceTester(() => service);
+
   tester.execute();
+ 
 
 });

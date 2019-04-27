@@ -1,7 +1,7 @@
 import { Command, CommandHelpInfo } from '../command';
 import EloRating from 'elo-rating';
 import { Snowflake, Message } from 'discord.js';
-import { DataService } from 'src/data/data-service';
+import { EloDataService } from 'src/data/elo-data-service';
 import { getRatingOrDefault } from '../common/get-rating-or-default';
 
 /**
@@ -14,11 +14,25 @@ enum OutcomeArgumentValue {
   Loss = 'lossvs'
 }
 
+type ParsedDuration = {
+  days: number,
+  hours: number,
+  minutes: number,
+  seconds: number,
+  milliseconds: number
+};
+
 /**
  * Command to record a match between two users and update their ratings.
  */
 export class Record implements Command {
-  public constructor(private prefix: string, private dataService: DataService) { }
+  /**
+   * Creates an instance of the `record` command.
+   * @param prefix The command's prefix.
+   * @param dataService The data service instance to use to communicate with the data store.
+   * @param minTimeBetweenMatches The minimum time two players have to wait before recording another match between one another, measured in milliseconds.
+   */
+  public constructor(private prefix: string, private dataService: EloDataService, private minTimeBetweenMatches: number = 1000 * 5) { }
 
   public name = 'record';
 
@@ -61,15 +75,70 @@ export class Record implements Command {
     const today = new Date();
     const server = message.guild.id;
 
-    const bothEligible = await this.dataService.areUsersEligibleForMatch(author.id, opponent.id, server, today);
-    if (bothEligible) {
+    const eligibleForMatch = await this.enoughTimeHasPassedSinceLastMatch(author.id, opponent.id, server, today);
+
+    if (eligibleForMatch) {
       await Promise.all([this.recordMatch(author.id, opponent.id, server, today, winner.id, author.id, this.dataService),
         this.updateRatings(author.id, opponent.id, server, winner.id, this.dataService)]);
 
       message.channel.send(`Recording ${message.author.username}'s ${result} ${opponent}`);
     } else {
-      message.channel.send('You two can have fun with each other, but can only record one match with each other per day.');
+      message.channel.send(`<@${message.author.id}>, you must wait at least ${this.formatTime(this.minTimeBetweenMatches)}` +
+        ` before recording another match within a specific opponent.`);
     }
+  }
+
+  private async enoughTimeHasPassedSinceLastMatch(user: Snowflake, otherUser: Snowflake, server: Snowflake, time: Date) {
+    const matchHistoryWithinMinTime = await this.dataService.getMatchHistory(user, otherUser, server,
+      new Date(time.getTime() - this.minTimeBetweenMatches), time);
+    return matchHistoryWithinMinTime.length === 0;
+  }
+
+  private parseDuration(durationInMs: number): ParsedDuration {
+    let remain = durationInMs;
+
+    const days = Math.floor(remain / (1000 * 60 * 60 * 24));
+    remain = remain % (1000 * 60 * 60 * 24)
+
+    const hours = Math.floor(remain / (1000 * 60 * 60));
+    remain = remain % (1000 * 60 * 60)
+
+    const minutes = Math.floor(remain / (1000 * 60));
+    remain = remain % (1000 * 60)
+
+    const seconds = Math.floor(remain / (1000));
+    remain = remain % (1000)
+
+    const milliseconds = remain;
+
+    return {
+      days,
+      hours,
+      minutes,
+      seconds,
+      milliseconds
+    };
+  }
+
+  private formatTime(durationInMs: number) {
+    const o = this.parseDuration(durationInMs);
+    const buildPart = (unit: string, quantity: number): string => {
+      if (quantity === 0) return '';
+
+      return quantity + (quantity !== 1 ? unit + 's' : unit);
+    };
+
+    let parts: string[] = [];
+
+    parts.push(buildPart('day', o.days));
+    parts.push(buildPart('hour', o.hours));
+    parts.push(buildPart('minute', o.minutes));
+    parts.push(buildPart('second', o.seconds));
+    parts.push(buildPart('millisecond', o.milliseconds));
+
+    parts = parts.filter((part: string) => part !== '');
+
+    return parts.join(' ');
   }
 
   /**
@@ -83,7 +152,7 @@ export class Record implements Command {
    * @remarks The first/second distinction of the two users is done only for code readability.
    */
   private async updateRatings(firstUser: Snowflake, secondUser: Snowflake, server: Snowflake,
-    winner: Snowflake, dataService: DataService) {
+    winner: Snowflake, dataService: EloDataService) {
 
     const [authorRating, opponentRating] = await Promise.all([getRatingOrDefault(firstUser, server, dataService),
       getRatingOrDefault(secondUser, server, dataService)]);
@@ -122,7 +191,7 @@ export class Record implements Command {
    * @param dataService The data service instance to use to record the match.
    */
   private async recordMatch(firstUser: Snowflake, secondUser: Snowflake, server: Snowflake, date: Date,
-    winner: Snowflake, author: Snowflake, dataService: DataService) {
+    winner: Snowflake, author: Snowflake, dataService: EloDataService) {
     return dataService.addMatch(firstUser, secondUser, server, date, winner, author);
   }
 

@@ -2,7 +2,7 @@ import { Snowflake } from 'discord.js';
 import SortedSet from 'collections/sorted-set';
 // @ts-ignore
 import SortedMap from 'collections/sorted-map';
-import { DatedMatchOutcome } from '../data-service';
+import { DatedMatchOutcome } from '../elo-data-service';
 import { datesAreOnSameDay } from '../../common';
 
 type UserSnowflake = Snowflake;
@@ -17,15 +17,23 @@ export class MatchHistoryRecorder {
   private matchResultsByUserPair: MatchResultsByDates = new Map();
   private matchDatesIndex: MatchDatesByUsers = new Map();
 
-  public getMatchHistory(user: UserSnowflake, otherUser: UserSnowflake): DatedMatchOutcome[] {
+  public getMatchHistory(user: UserSnowflake, otherUser: UserSnowflake, startDate?: Date, endDate?: Date): DatedMatchOutcome[] {
 
-    const playerMatchHistory = this.matchResultsByUserPair.get(this.getUniqueKeyFromUsers(user, otherUser));
+    const playerMatchHistory: SortedMap<Date, { winner: UserSnowflake, author: UserSnowflake}> =
+      this.matchResultsByUserPair.get(this.getUniqueKeyFromUsers(user, otherUser));
 
     if (playerMatchHistory == null) return [];
 
-    const playerMatchEntries = playerMatchHistory.entries();
+    const playerMatchHistoryWithinDates = playerMatchHistory.entries().filter((entry: [Date, {winner: UserSnowflake, author: UserSnowflake}]) => {
+      const date: Date = entry[0];
 
-    return playerMatchEntries.map((entry: [UserSnowflake,{winner: UserSnowflake, author: UserSnowflake}]) => {
+      if (startDate != null && date < startDate) return false;
+      if (endDate != null && date > endDate) return false;
+
+      return true;
+    });
+
+    return playerMatchHistoryWithinDates.map((entry: [UserSnowflake,{winner: UserSnowflake, author: UserSnowflake}]) => {
       return {
         date: entry[0],
         winner: entry[1].winner,

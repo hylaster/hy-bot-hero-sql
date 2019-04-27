@@ -1,7 +1,7 @@
-import { InMemoryDataService } from '../../../src/data/in-memory-implementation/in-memory-data-service';
+import { InMemoryEloDataService } from '../../../src/data/in-memory-implementation/in-memory-data-service';
 import { DataServiceTester } from '../data-service-tester';
 
-describe(nameof<InMemoryDataService>(), () => {
-  const tester = new DataServiceTester(() => new InMemoryDataService());
+describe(nameof<InMemoryEloDataService>(), () => {
+  const tester = new DataServiceTester(() => new InMemoryEloDataService());
   tester.execute();
 });

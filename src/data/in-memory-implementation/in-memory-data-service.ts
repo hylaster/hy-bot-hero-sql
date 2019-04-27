@@ -1,4 +1,4 @@
-import { DataService, UserRatingPair, DatedMatchOutcome } from '../data-service';
+import { EloDataService, UserRatingPair, DatedMatchOutcome } from '../elo-data-service';
 import { Snowflake } from 'discord.js';
 // @ts-ignore
 import { SortedMap } from 'collections/sorted-map';
@@ -16,7 +16,7 @@ class ServerInformation {
   public matchHistory = new MatchHistoryRecorder();
 }
 
-export class InMemoryDataService implements DataService {
+export class InMemoryEloDataService implements EloDataService {
 
   /** @inheritdoc */
   public isUserRated(user: UserSnowFlake, server: ServerSnowFlake): Promise<boolean> {
@@ -62,15 +62,6 @@ export class InMemoryDataService implements DataService {
   }
 
   /** @inheritdoc */
-  public areUsersEligibleForMatch(user: UserSnowFlake, otherUser: UserSnowFlake,
-    server: ServerSnowFlake, date: Date): Promise<boolean> {
-
-    const serverInfo = this.getServerInformation(server);
-
-    return Promise.resolve(!serverInfo.matchHistory.usersHadMatchOnDate(user, otherUser, date));
-  }
-
-  /** @inheritdoc */
   public addMatch(user: string, otherUser: string, server: string, date: Date,
     winner: string, author: string): Promise<void> {
 
@@ -80,8 +71,8 @@ export class InMemoryDataService implements DataService {
   }
 
   /** @inheritdoc */
-  public getMatchHistory(user1: string, user2: string, server: string): Promise<DatedMatchOutcome[]> {
-    return Promise.resolve(this.getServerInformation(server).matchHistory.getMatchHistory(user1, user2));
+  public getMatchHistory(user1: string, user2: string, server: string, startDate?: Date, endDate?: Date): Promise<DatedMatchOutcome[]> {
+    return Promise.resolve(this.getServerInformation(server).matchHistory.getMatchHistory(user1, user2, startDate, endDate));
   }
 
   /** @inheritdoc */

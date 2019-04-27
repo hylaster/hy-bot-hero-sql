@@ -1,5 +1,5 @@
 import Discord from 'discord.js';
-import { DataService } from 'src/data/data-service';
+import { EloDataService } from '../data/elo-data-service';
 
 export interface HyBotConfig {
   /** Token to be used for the client to login. */
@@ -35,5 +35,5 @@ export interface MatchRecordingValidationContext {
   /** The chat channel that the author is trying to record the match in. */
   channel: Discord.Channel;
   /** The data service that the bot is using. */
-  dataService: DataService;
+  eloDataService: EloDataService;
 }

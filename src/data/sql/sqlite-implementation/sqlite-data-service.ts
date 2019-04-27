@@ -1,11 +1,11 @@
-import { DataService, DatedMatchOutcome, UserRatingPair } from '../../data-service';
+import { EloDataService, DatedMatchOutcome, UserRatingPair } from '../../elo-data-service';
 import Sqlite, { Database } from 'better-sqlite3';
 import dedent = require('dedent');
 import { getUsersAsOrderedPair } from '../../../common';
 
 const sanitizeTableName = (name: string) => name.replace(/[^A-Za-z0-9_]/g, '');
 
-export class SqliteDataService implements DataService {
+export class SqliteEloDataService implements EloDataService {
 
   private db: Database;
 
@@ -32,16 +32,16 @@ export class SqliteDataService implements DataService {
    * @param matchTableName The name of the match table.
    * @returns A data service instance.
    */
-  public static createPersistentService(filepath: string, userTableName: string, matchTableName: string): SqliteDataService {
-    return new SqliteDataService(filepath, userTableName, matchTableName, false);
+  public static createPersistentService(filepath: string, userTableName: string, matchTableName: string): SqliteEloDataService {
+    return new SqliteEloDataService(filepath, userTableName, matchTableName, false);
   }
 
   /**
    * Creates a service that reads/writes data from memory. Data is not persistent and lost when the process terminates.
    * @returns A data service instance.
    */
-  public static createInMemoryService(): SqliteDataService {
-    return new SqliteDataService(undefined, 'users', 'matches', true);
+  public static createInMemoryService(): SqliteEloDataService {
+    return new SqliteEloDataService(undefined, 'users', 'matches', true);
   }
 
   /**

@@ -1,5 +1,5 @@
 import { SnowflakeUtil } from 'discord.js';
-import { DataService } from 'src/data/data-service';
+import { EloDataService, DatedMatchOutcome } from 'src/data/elo-data-service';
 
 const server1 = SnowflakeUtil.generate();
 const server2 = SnowflakeUtil.generate();
@@ -14,7 +14,12 @@ const dateDiffInMinutes = (date1: Date, date2: Date): number => {
   return Math.floor(diffInSeconds / 60);
 };
 
-export class DataServiceTester<T extends DataService> {
+const withinOneMs = (date1: Date, date2: Date): boolean => {
+  const diffInMs = Math.abs(date1.getTime() - date2.getTime());
+  return diffInMs < 1;
+}
+
+export class DataServiceTester<T extends EloDataService> {
 
   private dataService?: T;
 
@@ -78,33 +83,85 @@ export class DataServiceTester<T extends DataService> {
       expect(top2[1]).toEqual({ user: user4, rating: user4Rating });
     });
 
-    it('correctly identifies that users are eligible for a match for a date they have yet to have a match on', async () => {
+    it('can correctly retrieve matches that occur on or after a given start date (precise within two seconds)', async () => {
       const dataService = this.dataServiceGenerator();
       const now = new Date();
-      const thisTimeYesterday = dayBefore(now);
-      const winner = user1;
-      const author = user2;
+      const oneSecondAfterNow = new Date(new Date().valueOf() + 2);
+      const oneSecondBeforeNow = new Date(new Date().valueOf() - 2);
 
-      await dataService.addMatch(user1, user2, server1, thisTimeYesterday, winner, author);
-      const stillEligibleForMatch = await dataService.areUsersEligibleForMatch(user1, user2, server1, now);
+      await dataService.addMatch(user1, user2, server1, now, user1, user2);
+      await dataService.addMatch(user1, user2, server1, oneSecondAfterNow, user1, user2);
+      await dataService.addMatch(user1, user2, server1, oneSecondBeforeNow, user1, user2);
 
-      expect(stillEligibleForMatch).toBe(true);
+      const matches = await dataService.getMatchHistory(user1, user2, server1, now);
+
+      let foundOneMsBeforeMatch = false;
+      let foundNowMatch = false;
+      let foundOneMsAfterMatch = false;
+
+      matches.forEach((match: DatedMatchOutcome) => {
+        if (withinOneMs(match.date, now)) foundNowMatch = true;
+        if (withinOneMs(match.date, oneSecondAfterNow)) foundOneMsAfterMatch = true;
+        if (withinOneMs(match.date, oneSecondBeforeNow)) foundOneMsBeforeMatch = true;
+      });
+
+      expect(foundNowMatch).toBe(true);
+      expect(foundOneMsAfterMatch).toBe(true);
+      expect(foundOneMsBeforeMatch).toBe(false);
     });
 
-    it("correctly identifies that users are *not* eligible for a match on a date they've already had a match on", async () => {
+    it('can correctly retrieve matches that occur on or before a given end date (precise within two seconds)', async () => {
       const dataService = this.dataServiceGenerator();
       const now = new Date();
-      const thisTimeYesterday = dayBefore(now);
-      const winner = user1;
-      const author = user2;
+      const oneSecondAfterNow = new Date(new Date().valueOf() + 2);
+      const oneSecondBeforeNow = new Date(new Date().valueOf() - 2);
 
-      await dataService.addMatch(user1, user2, server1, thisTimeYesterday, winner, author);
-      await dataService.addMatch(user1, user2, server1, now, winner, author);
-      const eligibleForMatchToday = await dataService.areUsersEligibleForMatch(user1, user2, server1, now);
-      const eligibleForMatchYesterday = await dataService.areUsersEligibleForMatch(user1, user2, server1, thisTimeYesterday);
+      await dataService.addMatch(user1, user2, server1, now, user1, user2);
+      await dataService.addMatch(user1, user2, server1, oneSecondAfterNow, user1, user2);
+      await dataService.addMatch(user1, user2, server1, oneSecondBeforeNow, user1, user2);
 
-      expect(eligibleForMatchToday).toBe(false);
-      expect(eligibleForMatchYesterday).toBe(false);
+      const matches = await dataService.getMatchHistory(user1, user2, server1, now);
+
+      let foundOneMsBeforeMatch = false;;
+      let foundNowMatch = false;
+      let foundOneMsAfterMatch = false;
+
+      matches.forEach((match: DatedMatchOutcome) => {
+        if (withinOneMs(match.date, now)) foundNowMatch = true;
+        if (withinOneMs(match.date, oneSecondAfterNow)) foundOneMsAfterMatch = true;
+        if (withinOneMs(match.date, oneSecondBeforeNow)) foundOneMsBeforeMatch = true;
+      });
+
+      expect(foundNowMatch).toBe(true);
+      expect(foundOneMsAfterMatch).toBe(true);
+      expect(foundOneMsBeforeMatch).toBe(false);
+    });
+
+    it('can correctly retrieve matches that occur within a given date range (precise within two seconds)', async () => {
+      const dataService = this.dataServiceGenerator();
+      const now = new Date();
+      const oneSecondAfterNow = new Date(new Date().valueOf() + 2);
+      const oneSecondBeforeNow = new Date(new Date().valueOf() - 2);
+
+      await dataService.addMatch(user1, user2, server1, now, user1, user2);
+      await dataService.addMatch(user1, user2, server1, oneSecondAfterNow, user1, user2);
+      await dataService.addMatch(user1, user2, server1, oneSecondBeforeNow, user1, user2);
+
+      const matches = await dataService.getMatchHistory(user1, user2, server1, now, now);
+
+      let foundOneMsBeforeMatch = false;
+      let foundNowMatch = false;
+      let foundOneMsAfterMatch = false;
+
+      matches.forEach((match: DatedMatchOutcome) => {
+        if (withinOneMs(match.date, now)) foundNowMatch = true;
+        if (withinOneMs(match.date, oneSecondAfterNow)) foundOneMsAfterMatch = true;
+        if (withinOneMs(match.date, oneSecondBeforeNow)) foundOneMsBeforeMatch = true;
+      });
+
+      expect(foundNowMatch).toBe(true);
+      expect(foundOneMsAfterMatch).toBe(false);
+      expect(foundOneMsBeforeMatch).toBe(false);
     });
 
     it('correctly stores match history between two players (and in chronological order)', async () => {

@@ -1,12 +1,12 @@
 import { DataServiceTester } from './data-service-tester';
-import { SqliteDataService } from '../../src/data/sql/sqlite-implementation/sqlite-data-service';
+import { SqliteEloDataService } from '../../src/data/sql/sqlite-implementation/sqlite-data-service';
 import { SnowflakeUtil } from 'discord.js';
 
-describe(nameof<SqliteDataService>(), () => {
+describe(nameof<SqliteEloDataService>(), () => {
   describe('in memory', () => {
     const tester = new DataServiceTester(
-      () => SqliteDataService.createInMemoryService(),
-      (ds: SqliteDataService) => {
+      () => SqliteEloDataService.createInMemoryService(),
+      (ds: SqliteEloDataService) => {
         ds.deleteAllData();
       });
     tester.execute();
@@ -14,15 +14,15 @@ describe(nameof<SqliteDataService>(), () => {
 
   describe('persistent', () => {
     const tester = new DataServiceTester(
-      () => SqliteDataService.createPersistentService('./sqlite-test.db', 'user_table_test', 'match_table_test'),
-      (ds: SqliteDataService) => {
+      () => SqliteEloDataService.createPersistentService('./sqlite-test.db', 'user_table_test', 'match_table_test'),
+      (ds: SqliteEloDataService) => {
         ds.deleteAllData();
       });
     tester.execute();
 
     describe('persists data across data service instances', () => {
       it('persists ratings across data service instances', async () => {
-        const createService = () => SqliteDataService.createPersistentService('./sqlite-test.db', 'users', 'matches');
+        const createService = () => SqliteEloDataService.createPersistentService('./sqlite-test.db', 'users', 'matches');
 
         let service = createService();
         service.deleteAllData();
@@ -41,7 +41,7 @@ describe(nameof<SqliteDataService>(), () => {
       });
 
       it('persists matches across data services instances', async () => {
-        const createService = () => SqliteDataService.createPersistentService('./sqlite-test.db', 'users', 'matches');
+        const createService = () => SqliteEloDataService.createPersistentService('./sqlite-test.db', 'users', 'matches');
 
         let service = createService();
         service.deleteAllData();

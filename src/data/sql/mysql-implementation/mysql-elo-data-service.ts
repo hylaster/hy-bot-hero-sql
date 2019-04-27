@@ -1,11 +1,11 @@
-import { DataService, UserRatingPair, DatedMatchOutcome } from '../../data-service';
+import { EloDataService, UserRatingPair, DatedMatchOutcome } from '../../elo-data-service';
 import { Pool, MysqlError } from 'mysql';
 import { Snowflake } from 'discord.js';
 import { tablesExist, createUserTable, createMatchTable } from './table-management';
 import dedent = require('dedent');
 import { getUsersAsOrderedPair } from '../../../common';
 
-export class MySqlDataService implements DataService {
+export class MySqlEloDataService implements EloDataService {
 
   private constructor(private pool: Pool, private userTableName: string, private matchTableName: string) { }
 
@@ -19,7 +19,7 @@ export class MySqlDataService implements DataService {
    * @returns The data instance service.
    */
   public static async createService(pool: Pool, userTableName: string, matchTableName: string,
-    createMissingTables: boolean = false): Promise<MySqlDataService> {
+    createMissingTables: boolean = false): Promise<MySqlEloDataService> {
 
     pool.config.timezone = 'UTC+0';
 
@@ -44,7 +44,7 @@ export class MySqlDataService implements DataService {
 
     await Promise.all(tableCreators);
 
-    return new MySqlDataService(pool, userTableName, matchTableName);
+    return new MySqlEloDataService(pool, userTableName, matchTableName);
   }
 
   /** @inheritdoc */

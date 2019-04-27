@@ -1,11 +1,11 @@
 import { Command, CommandHelpInfo } from '../command';
 import { getRatingOrDefault } from '../common/get-rating-or-default';
 import { Message } from 'discord.js';
-import { DataService } from 'src/data/data-service';
+import { EloDataService } from 'src/data/elo-data-service';
 
 export class GetRating implements Command {
 
-  public constructor(private prefix: string, private dataService: DataService) {}
+  public constructor(private prefix: string, private dataService: EloDataService) {}
 
   public name = 'getrating';
 

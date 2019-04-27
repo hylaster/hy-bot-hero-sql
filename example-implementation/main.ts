@@ -1,9 +1,9 @@
 import http from 'http';
-import { MySqlDataService } from '../src/data/sql/mysql-implementation/mysql-data-service';
+import { MySqlEloDataService } from '../src/data/sql/mysql-implementation/mysql-elo-data-service';
 import { HyBot } from '../src/hybot';
 import mysql from 'mysql';
 import { HyBotConfig } from '../src/config/hybot-config';
-import { DataService } from '../src/data/data-service';
+import { EloDataService } from '../src/data/elo-data-service';
 import { GetRating, GetTop, Ping, Record, Roll, Timer } from '../src/command/commands';
 import { Help } from '../src/command/commands/help';
 
@@ -26,11 +26,11 @@ async function start() {
     password
   });
 
-  const dataService = await MySqlDataService.createService(pool, config.sql.userTableName, config.sql.matchTableName, true);
+  const dataService = await MySqlEloDataService.createService(pool, config.sql.userTableName, config.sql.matchTableName, true);
   startBot(config, dataService);
 }
 
-async function startBot(config: HyBotConfig, dataService: DataService) {
+async function startBot(config: HyBotConfig, dataService: EloDataService) {
   const bot = new HyBot(config);
   bot.commandRegistry.registerCommand(new GetRating(config.prefix, dataService));
   bot.commandRegistry.registerCommand(new Help(config.prefix, bot.commandRegistry, []));

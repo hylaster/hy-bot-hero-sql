@@ -8,7 +8,7 @@ export type DatedMatchOutcome = {
   author: Snowflake;
 };
 
-export interface DataService {
+export interface EloDataService {
 
   /**
    * Determines whether the given user has a rating defined on the given server.
@@ -35,9 +35,6 @@ export interface DataService {
    */
   setRating(user: Snowflake, server: Snowflake, rating: number): Promise<void>;
 
-  areUsersEligibleForMatch(user: Snowflake, otherUser: Snowflake, server: Snowflake,
-    date: Date): Promise<boolean>;
-
   /**
    * Record a match between two players. Does not update player ratings.
    * @param user The snowflake of one of the two users.
@@ -56,9 +53,12 @@ export interface DataService {
    * @param user1 One of the user's snowflake.
    * @param user2 The other user's snowflake.
    * @param server The server's snowflake.
+   * @param startDate The start of the range of dates in which to search for matches. If not supplied, searches starting
+   *  from the beginning of time.
+   * @param endDate The end of the range of dates in which to search for matches. If not supplied, searches up to the end of time.
    * @returns A list of matches between the two user's on the specified server, including their outcomes.
    */
-  getMatchHistory(user1: Snowflake, user2: Snowflake, server: Snowflake): Promise<DatedMatchOutcome[]>;
+  getMatchHistory(user1: Snowflake, user2: Snowflake, server: Snowflake, startDate?: Date, endDate?: Date): Promise<DatedMatchOutcome[]>;
 
   /**
    * Gets the N top-rated players on a particular server.

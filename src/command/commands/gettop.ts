@@ -1,10 +1,10 @@
 import { Command, CommandHelpInfo } from '../command';
-import { UserRatingPair, DataService } from 'src/data/data-service';
+import { UserRatingPair, EloDataService } from 'src/data/elo-data-service';
 import { Client, Message } from 'discord.js';
 
 export class GetTop implements Command {
 
-  public constructor(private prefix: string, private dataService: DataService, private client: Client) { }
+  public constructor(private prefix: string, private dataService: EloDataService, private client: Client) { }
 
   name = 'gettop';
 

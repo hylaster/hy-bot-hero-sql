@@ -40,7 +40,6 @@ export function createUserTable(pool: Pool, tableName: string): Promise<void> {
       if (err) {
         reject(err);
       } else {
-        console.log('Created user table.');
         resolve();
       }
     });
@@ -53,7 +52,7 @@ export function createMatchTable(pool: Pool, tableName: string): Promise<void> {
           user1 varchar(64),
           user2 varchar(64),
           server varchar(64),
-          record_date datetime,
+          record_date timestamp(6),
           winner varchar(64),
           author varchar(64)
          )`;
@@ -63,7 +62,6 @@ export function createMatchTable(pool: Pool, tableName: string): Promise<void> {
       if (err) {
         reject(err);
       } else {
-        console.log('Created match table.');
         resolve();
       }
     });
