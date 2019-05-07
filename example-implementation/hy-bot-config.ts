@@ -14,7 +14,7 @@ const password = process.env.DATABASE_PASSWORD;
 
 export const config: HyBotMySqlConfig = {
   token: 'NTAzNzU4NTM4NDE4NTUyODMy.DsAZgA.DU9XxTFbv_qAinykdbR_YIN9IHY',
-  prefix: '$',
+  prefix: '!',
   owners: ['368485403340046336'],
   clientConfig: {},
   sql: {
