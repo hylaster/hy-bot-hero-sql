@@ -6,9 +6,13 @@ import { CommandRegistry } from './command/command-registry';
 
 export class HyBot {
 
-  private client?: Discord.Client;
   public commandRegistry = new CommandRegistry();
+  private client?: Discord.Client;
 
+  /**
+   * Creates an instance of HyBot, ready to connect.
+   * @param config The configuration for the bot.
+   */
   public constructor(private config: HyBotConfig) {}
 
   /**
@@ -51,7 +55,7 @@ export class HyBot {
     if (this.client == null || this.client.status === (Discord as any).Constants.Status.DISCONNECTED) {
       throw new Error('Attempted to process a message without a connected client.');
     }
-    if (!this.messageIsIntendedForBot(message)) return;
+    if (!this.isMessageIntendedForBot(message)) return;
 
     const messageParts: CommandMessageParts | undefined =
         parseCommand(this.config.prefix, message);
@@ -73,7 +77,7 @@ export class HyBot {
     }
   }
 
-  private messageIsIntendedForBot(message: Discord.Message) {
+  private isMessageIntendedForBot(message: Discord.Message) {
     return message.content.startsWith(this.config.prefix);
   }
 }
