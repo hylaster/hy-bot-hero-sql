@@ -32,7 +32,7 @@ import mysql from 'mysql';
 
 async function createAndStartBot() {
 
-  // As you likely already know, we should be storing database connection info in plaintext / in code, but
+  // We souldn't be storing database connection info in plaintext / in code, but
   // we do so in this example to keep things simple.
   const pool: mysql.Pool = mysql.createPool({
     connectionLimit: 10,
