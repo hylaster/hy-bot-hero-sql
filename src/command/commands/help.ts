@@ -9,9 +9,9 @@ import { CommandRegistry } from '../command-registry';
 export class Help implements Command {
   public constructor(private prefix: string, private commandRegistry: CommandRegistry, private blackList: string[]) {}
 
-  public name = 'help';
+  public readonly name = 'help';
 
-  public helpInfo: CommandHelpInfo = {
+  public readonly helpInfo: CommandHelpInfo = {
     description: 'Gets a list of commands, or provides info on a specific info command.',
     argSpecs: [
       {

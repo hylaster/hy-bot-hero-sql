@@ -5,9 +5,9 @@ export class Timer implements Command {
 
   public constructor(private prefix: string) {}
 
-  public name = 'timer';
+  public readonly name = 'timer';
 
-  public helpInfo: CommandHelpInfo = {
+  public readonly helpInfo: CommandHelpInfo = {
     description: 'Set an *n*-second timer.',
     argSpecs: [
       { name: 'length in seconds', description: 'Number of seconds until your timer will go off.' }

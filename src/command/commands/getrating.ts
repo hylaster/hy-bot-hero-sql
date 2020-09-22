@@ -7,9 +7,9 @@ export class GetRating implements Command {
 
   public constructor(private prefix: string, private dataService: EloDataService) {}
 
-  public name = 'getrating';
+  public readonly name = 'getrating';
 
-  public helpInfo: CommandHelpInfo = {
+  public readonly helpInfo: CommandHelpInfo = {
     description: "Get's a player's ranking.",
     argSpecs: [
       { name: 'User', description: 'A mention for a user them (i.e. @ someone).' }

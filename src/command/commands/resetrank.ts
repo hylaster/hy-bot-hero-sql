@@ -6,9 +6,9 @@ export class ResetRank implements Command {
   public constructor(private commandPrefix: string, private authorizedUsers: Snowflake[],
               private dataService: EloDataService) {}
 
-  public name = 'resetrank';
+  public readonly name = 'resetrank';
 
-  public helpInfo: CommandHelpInfo = {
+  public readonly helpInfo: CommandHelpInfo = {
     description: "Resets a player's rank. Can only be used by one of the authorized users: ",
     argSpecs: [
       { name: 'user', description: `player that will have their rank reset.` }

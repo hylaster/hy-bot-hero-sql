@@ -6,9 +6,9 @@ export class GetTop implements Command {
 
   public constructor(private prefix: string, private dataService: EloDataService, private client: Client) { }
 
-  name = 'gettop';
+  public readonly name = 'gettop';
 
-  helpInfo: CommandHelpInfo = {
+  public readonly helpInfo: CommandHelpInfo = {
     description: "Get's a player's ranking.",
     argSpecs: [
       { name: 'User', description: 'A mention for a user them (i.e. @ someone).' }

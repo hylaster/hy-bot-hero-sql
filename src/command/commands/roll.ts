@@ -5,9 +5,9 @@ export class Roll implements Command {
 
   constructor(private prefix: string) { }
 
-  public name = 'roll';
+  public readonly name = 'roll';
 
-  public helpInfo: CommandHelpInfo = {
+  public readonly helpInfo: CommandHelpInfo = {
     description: 'Rolls some number of dice, with an optional +/- modifier.',
     argSpecs: [
       { name: 'dice string', description: 'Specifies the number of dice to roll, the number of faces each has, ' +

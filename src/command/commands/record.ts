@@ -34,9 +34,9 @@ export class Record implements Command {
    */
   public constructor(private prefix: string, private dataService: EloDataService, private minTimeBetweenMatches: number = 1000 * 5) { }
 
-  public name = 'record';
+  public readonly name = 'record';
 
-  public helpInfo: CommandHelpInfo = {
+  public readonly helpInfo: CommandHelpInfo = {
     description: 'Records a match between you and an opponent.',
     argSpecs: [
       { name: 'outcome', description: `'${OutcomeArgumentValue.Win}' if you won, or '${OutcomeArgumentValue.Loss}' if you lost.` },

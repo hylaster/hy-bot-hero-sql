@@ -4,17 +4,17 @@ import { Message } from 'discord.js';
  * A bot command that can be used for users to perform bot actions.
  */
 export interface Command {
-  name: string;
-  helpInfo?: CommandHelpInfo;
-  action: (message: Message, args: string[]) => Promise<void>;
+  readonly name: string;
+  readonly helpInfo?: CommandHelpInfo;
+  readonly action: (message: Message, args: string[]) => Promise<void>;
 }
 
 /**
  * The specification for a bot command argument.
  */
 export interface CommandArgSpec {
-  name: string;
-  description: string;
+  readonly name: string;
+  readonly description: string;
 }
 
 /**
@@ -22,7 +22,7 @@ export interface CommandArgSpec {
  * does and how to use it.
  */
 export interface CommandHelpInfo {
-  description: string;
-  argSpecs: CommandArgSpec[];
-  examples: string[];
+  readonly description: string;
+  readonly argSpecs: ReadonlyArray<CommandArgSpec>;
+  readonly examples: ReadonlyArray<string>;
 }
