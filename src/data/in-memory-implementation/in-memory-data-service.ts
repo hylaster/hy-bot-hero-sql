@@ -1,7 +1,6 @@
 import { EloDataService, UserRatingPair, DatedMatchOutcome } from '../elo-data-service';
 import { Snowflake } from 'discord.js';
-// @ts-ignore
-import { SortedMap } from 'collections/sorted-map';
+import { TreeMap } from 'jstreemap';
 import { MatchHistoryRecorder } from './match-history-recorder';
 
 type ServerSnowFlake = Snowflake;
@@ -12,7 +11,7 @@ type PlayerToRatingMap = Map<UserSnowFlake, Rating>;
 
 class ServerInformation {
   public ratingsByPlayer: PlayerToRatingMap = new Map();
-  public playersByRating: SortedMap<number, Set<UserSnowFlake>> = new SortedMap();
+  public playersByRating: TreeMap<number, Set<UserSnowFlake>> = new TreeMap();
   public matchHistory = new MatchHistoryRecorder();
 }
 
@@ -39,7 +38,7 @@ export class InMemoryEloDataService implements EloDataService {
     const updateRatingsByPlayerMap = (oldRating: number | undefined) => {
 
       if (oldRating != null) {
-        const playersWithOldRating: Set<UserSnowFlake> = serverInfo.playersByRating.get(oldRating);
+        const playersWithOldRating = serverInfo.playersByRating.get(oldRating);
         if (playersWithOldRating != null) {
           playersWithOldRating.delete(user);
         }
@@ -49,7 +48,7 @@ export class InMemoryEloDataService implements EloDataService {
         serverInfo.playersByRating.set(rating, new Set());
       }
 
-      const playersWithRating: Set<UserSnowFlake> = serverInfo.playersByRating.get(rating);
+      const playersWithRating: Set<UserSnowFlake> = serverInfo.playersByRating.get(rating)!;
       playersWithRating.add(user);
     };
 

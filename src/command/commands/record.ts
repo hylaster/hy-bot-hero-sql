@@ -67,7 +67,7 @@ export class Record implements Command {
       message.channel.send('Sorry, but playing with yourself is against the rules.');
       return;
     } else if (opponent.bot) {
-      message.channel.send("Bots wouldn't mind battling you, but you would lose in six turns, which is a bit too quick for our tastes.");
+      message.channel.send("Bots wouldn't mind battling you, but you would lose in six turns.");
       return;
     }
 

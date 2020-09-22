@@ -1,6 +1,6 @@
 import { EloDataService, DatedMatchOutcome, UserRatingPair } from '../../elo-data-service';
 import Sqlite, { Database } from 'better-sqlite3';
-import dedent = require('dedent');
+import dedent from 'dedent';
 import { getUsersAsOrderedPair } from '../../../common';
 
 const sanitizeTableName = (name: string) => name.replace(/[^A-Za-z0-9_]/g, '');
@@ -12,14 +12,14 @@ export class SqliteEloDataService implements EloDataService {
   private userTableName: string;
   private matchTableName: string;
 
-  private constructor(filePath: string = '', userTableName: string, matchTableName: string, inMemory: boolean) {
+  private constructor(filePath: string, userTableName: string, matchTableName: string) {
     userTableName = sanitizeTableName(userTableName);
     matchTableName = sanitizeTableName(matchTableName);
 
     this.userTableName = userTableName;
     this.matchTableName = matchTableName;
 
-    this.db = Sqlite(filePath, { memory: inMemory });
+    this.db = Sqlite(filePath);
 
     if (!this.tableExists(userTableName)) this.createUserTable();
     if (!this.tableExists(matchTableName)) this.createMatchTable();
@@ -33,7 +33,7 @@ export class SqliteEloDataService implements EloDataService {
    * @returns A data service instance.
    */
   public static createPersistentService(filepath: string, userTableName: string, matchTableName: string): SqliteEloDataService {
-    return new SqliteEloDataService(filepath, userTableName, matchTableName, false);
+    return new SqliteEloDataService(filepath, userTableName, matchTableName);
   }
 
   /**
@@ -41,7 +41,7 @@ export class SqliteEloDataService implements EloDataService {
    * @returns A data service instance.
    */
   public static createInMemoryService(): SqliteEloDataService {
-    return new SqliteEloDataService(undefined, 'users', 'matches', true);
+    return new SqliteEloDataService(':memory:', 'users', 'matches');
   }
 
   /**

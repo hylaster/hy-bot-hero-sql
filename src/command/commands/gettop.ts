@@ -11,7 +11,7 @@ export class GetTop implements Command {
   public readonly helpInfo: CommandHelpInfo = {
     description: "Get's a player's ranking.",
     argSpecs: [
-      { name: 'User', description: 'A mention for a user them (i.e. @ someone).' }
+      { name: 'User', description: 'A mention for the user (i.e. @ someone).' }
     ],
     examples: [`${this.prefix + this.name} @ELO Bot`]
   };

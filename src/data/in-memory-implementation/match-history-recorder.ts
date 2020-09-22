@@ -1,16 +1,14 @@
 import { Snowflake } from 'discord.js';
-import SortedSet from 'collections/sorted-set';
-// @ts-ignore
-import SortedMap from 'collections/sorted-map';
 import { DatedMatchOutcome } from '../elo-data-service';
 import { datesAreOnSameDay } from '../../common';
+import { TreeSet, TreeMap } from 'tstl';
 
 type UserSnowflake = Snowflake;
 
 type UserPairKey = string;
 
-type MatchResultsByDates = Map<UserPairKey, SortedMap<Date, { winner: UserSnowflake, author: UserSnowflake }>>;
-type MatchDatesByUsers = Map<UserPairKey, SortedSet<Date>>;
+type MatchResultsByDates = Map<UserPairKey, TreeMap<Date, { winner: UserSnowflake, author: UserSnowflake }>>;
+type MatchDatesByUsers = Map<UserPairKey, TreeSet<Date>>;
 
 export class MatchHistoryRecorder {
 
@@ -19,12 +17,12 @@ export class MatchHistoryRecorder {
 
   public getMatchHistory(user: UserSnowflake, otherUser: UserSnowflake, startDate?: Date, endDate?: Date): DatedMatchOutcome[] {
 
-    const playerMatchHistory: SortedMap<Date, { winner: UserSnowflake, author: UserSnowflake}> =
+    const playerMatchHistory =
       this.matchResultsByUserPair.get(this.getUniqueKeyFromUsers(user, otherUser));
 
     if (playerMatchHistory == null) return [];
 
-    const playerMatchHistoryWithinDates = playerMatchHistory.entries().filter((entry: [Date, {winner: UserSnowflake, author: UserSnowflake}]) => {
+    const playerMatchHistoryWithinDates = getEntries(playerMatchHistory).filter((entry: [Date, { winner: UserSnowflake, author: UserSnowflake }]) => {
       const date: Date = entry[0];
 
       if (startDate != null && date < startDate) return false;
@@ -33,7 +31,7 @@ export class MatchHistoryRecorder {
       return true;
     });
 
-    return playerMatchHistoryWithinDates.map((entry: [UserSnowflake,{winner: UserSnowflake, author: UserSnowflake}]) => {
+    return playerMatchHistoryWithinDates.map((entry: [Date, { winner: UserSnowflake, author: UserSnowflake }]) => {
       return {
         date: entry[0],
         winner: entry[1].winner,
@@ -48,12 +46,12 @@ export class MatchHistoryRecorder {
 
     if (matchDates == null) return false;
 
-    const greatestLessThanDate = matchDates.findGreatestLessThanOrEqual(date);
-    const leastGreaterThanDate = matchDates.findLeastGreaterThanOrEqual(date);
+    const greatestLessThanDate = findGreatestLessThanOrEqual(matchDates, date);
+    const leastGreaterThanDate = findLeastGreaterThanOrEqual(matchDates, date);
 
     // Type assertions are needed due to the error in the DefinitelyTyped typings.
-    if (greatestLessThanDate != null && datesAreOnSameDay(date, (greatestLessThanDate as any).value)) return true;
-    if (leastGreaterThanDate != null && datesAreOnSameDay(date, (leastGreaterThanDate as any).value)) return true;
+    if (greatestLessThanDate != null && datesAreOnSameDay(date, greatestLessThanDate)) return true;
+    if (leastGreaterThanDate != null && datesAreOnSameDay(date, leastGreaterThanDate)) return true;
 
     return false;
   }
@@ -62,12 +60,12 @@ export class MatchHistoryRecorder {
     const updateDateIndex = (userPairKey: string, date: Date) => {
 
       if (!this.matchDatesIndex.has(userPairKey)) {
-        this.matchDatesIndex!.set(userPairKey, new SortedSet<Date>());
+        this.matchDatesIndex!.set(userPairKey, new TreeSet<Date>());
       }
 
       const matchDates = this.matchDatesIndex!.get(userPairKey);
 
-      matchDates!.add(date);
+      matchDates!.insert(date);
     };
 
     const uniqueUserPairKey = this.getUniqueKeyFromUsers(user, otherUser);
@@ -75,7 +73,7 @@ export class MatchHistoryRecorder {
     updateDateIndex(uniqueUserPairKey, date);
 
     if (!this.matchResultsByUserPair.has(uniqueUserPairKey)) {
-      this.matchResultsByUserPair!.set(uniqueUserPairKey, new SortedMap());
+      this.matchResultsByUserPair!.set(uniqueUserPairKey, new TreeMap());
     }
 
     this.matchResultsByUserPair!.get(uniqueUserPairKey)!.set(date, { winner, author });
@@ -87,4 +85,25 @@ export class MatchHistoryRecorder {
 
     return user1 + user2;
   }
+}
+
+function findLeastGreaterThanOrEqual<T>(set: TreeSet<T>, value: T): T | undefined {
+  if (set.has(value)) return value;
+  return set.upper_bound(value).value;
+}
+
+function findGreatestLessThanOrEqual<T>(set: TreeSet<T>, value: T): T | undefined {
+  if (set.has(value)) return value;
+  const it = set.lower_bound(value).prev();
+  return it.equals(set.end()) ? undefined : it.value;
+}
+
+function getEntries<K,V>(map: TreeMap<K, V>): [K, V][] {
+  let arr: [[K, V]] = [] as any;
+  // ITERATION
+  for (let it = map.begin(); !it.equals(map.end()); it = it.next()) {
+    arr.push([it.first, it.second]);
+  }
+
+  return arr;
 }

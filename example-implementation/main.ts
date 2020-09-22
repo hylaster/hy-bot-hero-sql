@@ -1,32 +1,16 @@
 import http from 'http';
-import { MySqlEloDataService } from '../src/data/sql/mysql-implementation/mysql-elo-data-service';
 import { HyBot } from '../src/hybot';
-import mysql from 'mysql';
-import { HyBotConfig } from '../src/config/hybot-config';
 import { EloDataService } from '../src/data/elo-data-service';
 import { GetRating, GetTop, Ping, Record, Roll, Timer } from '../src/command/commands';
 import { Help } from '../src/command/commands/help';
+import { config } from './hy-bot-config';
+import { HyBotConfig } from '../src/config/hybot-config';
+import { SqliteEloDataService } from '../src/data/sql/sqlite-implementation/sqlite-data-service';
 
 // Spins up an implementation of Hybot.
 
-import { config } from './hy-bot-config';
-
-async function start() {
-
-  const { host, port, database, user, password } = config.sql.connectionInfo;
-
-  const pool = mysql.createPool({
-    connectionLimit: 10,
-    connectTimeout: 60 * 60 * 1000,
-    timeout: 60 * 60 * 1000,
-    host,
-    port,
-    database,
-    user,
-    password
-  });
-
-  const dataService = await MySqlEloDataService.createService(pool, config.sql.userTableName, config.sql.matchTableName, true);
+function start() {
+  const dataService = SqliteEloDataService.createInMemoryService();
   startBot(config, dataService);
 }
 
