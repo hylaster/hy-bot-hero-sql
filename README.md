@@ -66,12 +66,12 @@ const bot = new HyBot(config);
 // Here, we add all the built-in commands. The implementer is free to omit any of these commands
 // and add their own.
 
-bot.commandRegistry.registerCommand(new GetRating(config.prefix, dataService));
-bot.commandRegistry.registerCommand(new Help(config.prefix, bot.commandRegistry, []));
-bot.commandRegistry.registerCommand(new Ping());
-bot.commandRegistry.registerCommand(new Record(config.prefix, dataService));
-bot.commandRegistry.registerCommand(new Roll(config.prefix));
-bot.commandRegistry.registerCommand(new Timer(config.prefix));
+bot.registerCommand(new GetRating(config.prefix, dataService));
+bot.registerCommand(new Help(config.prefix, () => bot.getCommands(), []));
+bot.registerCommand(new Ping());
+bot.registerCommand(new Record(config.prefix, dataService));
+bot.registerCommand(new Roll(config.prefix));
+bot.registerCommand(new Timer(config.prefix));
 
 const client: Discord.Client = await bot.connect();
 console.log(`Bot Client logged in as ${client.user.username}.`);
