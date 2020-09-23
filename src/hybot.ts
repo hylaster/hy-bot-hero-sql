@@ -2,18 +2,17 @@ import Discord, { Client } from 'discord.js';
 import { HyBotConfig } from './config/hybot-config';
 import { Command } from './command/command';
 import { CommandMessageParts, parseCommand } from './command/message-parser';
-import { CommandRegistry } from './command/command-registry';
 
 export class HyBot {
 
-  public commandRegistry = new CommandRegistry();
   private client?: Discord.Client;
+  private readonly commandsByName = new Map<string, Command>();
 
   /**
    * Creates an instance of HyBot, ready to connect.
    * @param config The configuration for the bot.
    */
-  public constructor(private config: HyBotConfig) {}
+  public constructor(private config: HyBotConfig) { }
 
   /**
    * Creates a Discord client for the bot to use using the
@@ -41,8 +40,42 @@ export class HyBot {
     }
   }
 
+  /**
+   * Disconnects the client if it is connected.
+   */
   public disconnect() {
     if (this.client != null) this.client.destroy();
+  }
+
+  /**
+   * Adds a command to this registry.
+   * @param command The command to add.
+   */
+  public registerCommand(command: Command | Command[]) {
+    if (!Array.isArray(command)) {
+      command = Array(command);
+    }
+
+    command.forEach(c => this.commandsByName.set(c.name, c));
+  }
+
+  /**
+   * Removes a command from this registry.
+   * @param command The `Command` to remove.
+   */
+  public unregisterCommand(command: Command | Command[]) {
+    if (!Array.isArray(command)) {
+      command = Array(command);
+    }
+
+    command.forEach(c => this.commandsByName.delete(c.name));
+  }
+
+  /**
+   * Gets the `Command`s registered.
+   */
+  public getCommands(): Command[] {
+    return [...this.commandsByName.values()];
   }
 
   /**
@@ -58,7 +91,7 @@ export class HyBot {
     if (!this.isMessageIntendedForBot(message)) return;
 
     const messageParts: CommandMessageParts | undefined =
-        parseCommand(this.config.prefix, message);
+      parseCommand(this.config.prefix, message);
 
     if (messageParts == null) return;
 

@@ -1,13 +1,13 @@
 import { Command, CommandHelpInfo } from '../command';
 import dedent = require('dedent');
 import { Message, RichEmbed } from 'discord.js';
-import { CommandRegistry } from '../command-registry';
+import { CommandSource } from '../command-source';
 
 /**
  * A command that explains what other commands do and how to use them.
  */
 export class Help implements Command {
-  public constructor(private prefix: string, private commandRegistry: CommandRegistry, private blackList: string[]) {}
+  public constructor(private readonly prefix: string, private readonly commands: CommandSource, private readonly exclusionList: string[]) {}
 
   public readonly name = 'help';
 
@@ -19,20 +19,22 @@ export class Help implements Command {
         description: 'If given, I will retrieve information for this command. If not given, I will give you a list of commands.'
       }
     ],
-    examples: []
+    examples: [],
   };
 
   public async action(message: Message, args: string[]) {
     const channel = message.channel;
 
+    const commands = this.commands();
+
     if (args.length === 0) {
-      const names = this.commandRegistry.getCommandNames().filter(name => !this.blackList.includes(name))
+      const names = commands.map(c => c.name).filter(name => !this.exclusionList.includes(name))
                                                           .map(name => `\`${name}\``);
       channel.send(dedent`Available commands: ${names.join(', ')}.
                           Type \`${this.prefix + this.name}\` followed by the name of any command to see how to use it.`);
     } else {
       const nameOfCommandInQuestion = args[0];
-      const command = this.commandRegistry.getCommands().find(c => c.name === nameOfCommandInQuestion);
+      const command = commands.find(c => c.name === nameOfCommandInQuestion);
 
       if (command == null) {
         channel.send(`Didn't find a command with a name of *${nameOfCommandInQuestion}*.`);

@@ -17,7 +17,7 @@ export function parseCommand(prefix: string, message: Message): CommandMessagePa
 
   const words: string[] = message.content.slice(prefix.length).trim().split(/ +/g);
 
-  if (words == null || words.length === 0) return undefined;
+  if (words.length === 0) return undefined;
 
   const commandName = words[0].toLowerCase();
   const args = words.splice(1);
