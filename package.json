@@ -20,7 +20,7 @@
     "discord.js": "^11.2.1",
     "ejs": "^2.5.7",
     "elo-rating": "^1.0.1",
-    "express": "^4.16.2",
+    "express": "^4.18.2",
     "git": "^0.1.5",
     "jstreemap": "^1.28.2",
     "mysql": "^2.15.0",
